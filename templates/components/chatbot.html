@@ -1,0 +1,89 @@
+{% load static %}
+
+<!-- ============================================================
+     CHATBOT WIDGET
+     ============================================================ -->
+
+<!-- Chatbot Toggle Button -->
+<button id="chatbotToggle" class="chatbot-toggle" onclick="toggleChatbot()">
+    <i class="fas fa-robot chatbot-icon-open"></i>
+    <i class="fas fa-times chatbot-icon-close"></i>
+    <span class="chatbot-badge" id="chatbotBadge">1</span>
+</button>
+
+<!-- Chatbot Overlay -->
+<div id="chatbotOverlay" class="chatbot-overlay">
+    <div class="chatbot-container">
+        <!-- Chatbot Header -->
+        <div class="chatbot-header">
+            <div class="chatbot-header-left">
+                <div class="chatbot-avatar">
+                    <i class="fas fa-shield-halved"></i>
+                    <span class="avatar-status"></span>
+                </div>
+                <div class="chatbot-header-info">
+                    <h3>FraudDetect Assistant</h3>
+                    <p><span class="online-dot"></span> Online • Ready to help</p>
+                </div>
+            </div>
+            <div class="chatbot-header-right">
+                <button class="chatbot-header-btn" onclick="clearChat()" title="Clear chat">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+                <button class="chatbot-header-btn" onclick="minimizeChatbot()" title="Minimize">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <button class="chatbot-header-btn close" onclick="closeChatbot()" title="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Chatbot Body -->
+        <div class="chatbot-body" id="chatbotBody">
+            <!-- Welcome Message -->
+            <div class="chat-message bot-message">
+                <div class="message-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        <p>👋 Hello! I'm your <strong>FraudDetect Assistant</strong>.</p>
+                        <p>I can help you with:</p>
+                        <ul>
+                            <li>📊 Transaction analysis</li>
+                            <li>🔍 Fraud detection insights</li>
+                            <li>👥 Customer risk assessment</li>
+                            <li>🚨 Alert investigations</li>
+                            <li>📈 Model performance</li>
+                        </ul>
+                        <p>What would you like to know?</p>
+                    </div>
+                    <span class="message-time">Just now</span>
+                </div>
+            </div>
+
+
+        </div>
+
+        <!-- Chatbot Footer -->
+        <div class="chatbot-footer">
+            <div class="chatbot-input-wrapper">
+                <textarea
+                    id="chatbotInput"
+                    class="chatbot-input"
+                    placeholder="Type your message..."
+                    rows="1"
+                    onkeydown="handleChatKeydown(event)"
+                    oninput="autoResizeTextarea(this)"></textarea>
+                <button class="chatbot-send-btn" onclick="sendMessage()" id="sendBtn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+            <div class="chatbot-footer-info">
+                <span><i class="fas fa-lock"></i> Secure & Private</span>
+                <span>Powered by AI</span>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,107 @@
+
+<aside class="sidebar" id="sidebar">
+    <nav class="sidebar-nav">
+        <ul>
+
+            <li>
+                <a href="{% url 'dashboard:dashboard'%}">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'transaction:transaction' full_name=full_name %}">
+                    <i class="fas fa-arrow-right-arrow-left"></i>
+                    <span>New Transactions</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'transaction:transaction_history' full_name=full_name %}">
+                    <i class="fas fa-clock-rotate-left"></i>
+                    <span>Transaction History</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'executiveDashboard:executiveDashboard' full_name=full_name %}">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Executive Dashboard</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'transaction:transactionAnalytics' full_name=full_name %}">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Transaction Analytics</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'fraudAnalytics:fraudAnalytics' full_name=full_name %}">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Fraud Analytics</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'customer:customerRisk' full_name=full_name %}">
+                    <i class="fas fa-user-shield"></i>
+                    <span>Customer Risk</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'destination:destination' full_name=full_name %}">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Destination Risk</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'fraudAnalytics:fraudpattern' full_name=full_name %}">
+                    <i class="fas fa-project-diagram"></i>
+                    <span>Fraud Patterns</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'geographicAnalysis:geographicAnalysis' full_name=full_name %}">
+                    <i class="fas fa-globe"></i>
+                    <span>Geographic Analysis</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'mlPerformance:mlPerformance' full_name=full_name %}">
+                    <i class="fas fa-brain"></i>
+                    <span>ML Performance</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'realTimeMonitoring:realTimeMonitoring' full_name=full_name %}">
+                    <i class="fas fa-desktop"></i>
+                    <span>Real-Time Monitoring</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'alertInvestigation:alertInvestigation' full_name=full_name %}">
+                    <i class="fas fa-search"></i>
+                    <span>Alert Investigation</span>
+                </a>
+            </li>
+
+        </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+        <a href="{% url 'dashboard:logout' %}" class="logout-btn" title="Logout">
+            <span>Logout</span>
+            <i class="fas fa-sign-out-alt"></i>
+        </a>
+    </div>
+</aside>
+

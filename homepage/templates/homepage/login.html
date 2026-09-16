@@ -1,0 +1,740 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+
+    <title>Login | Financial Fraud Detection System</title>
+
+    <!-- ================= FONT AWESOME ================= -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- ================= GOOGLE FONT ================= -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+          rel="stylesheet">
+
+    <!-- ================= CSS ================= -->
+    <link rel="stylesheet"
+          href="{% static 'homepage/css/login.css' %}">
+
+    <link rel="stylesheet"
+          href="{% static 'homepage/css/verify_otp2.css' %}">
+</head>
+
+
+<body>
+
+<!-- =========================================================
+     LOGIN CONTAINER
+========================================================= -->
+
+<div class="login-container">
+
+
+    <!-- =====================================================
+         LEFT PANEL
+    ====================================================== -->
+
+    <div class="login-left">
+
+        <!-- BRAND -->
+        <div class="brand">
+
+            <div class="brand-logo">
+
+                <i class="fas fa-shield-halved"></i>
+
+                <h1>
+                    Fraud<span>Detect</span>
+                </h1>
+
+            </div>
+
+            <p class="brand-tagline">
+                AI-Powered Financial Security
+            </p>
+
+        </div>
+
+
+        <!-- SECURITY GRAPHIC -->
+        <div class="media-area">
+
+            <div class="security-shield">
+
+                <i class="fas fa-shield-halved"></i>
+
+                <div class="pulse-ring"></div>
+
+            </div>
+
+
+            <!-- FLOATING ICONS -->
+            <div class="floating-icons">
+
+                <span class="float-icon">
+                    <i class="fas fa-lock"></i>
+                </span>
+
+                <span class="float-icon">
+                    <i class="fas fa-credit-card"></i>
+                </span>
+
+                <span class="float-icon">
+                    <i class="fas fa-chart-line"></i>
+                </span>
+
+                <span class="float-icon">
+                    <i class="fas fa-robot"></i>
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- FOOTER -->
+        <div class="login-footer">
+
+            <p>
+                New to FraudDetect?
+
+                <a href="{% url 'homepage:register' %}">
+                    Create Account
+                </a>
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         RIGHT PANEL
+    ====================================================== -->
+
+    <div class="login-right">
+
+
+        <!-- LOGIN HEADER -->
+        <div class="login-header">
+
+            <h1>
+                Welcome Back
+            </h1>
+
+            <p>
+                Login to access your fraud detection dashboard
+            </p>
+
+        </div>
+
+
+        <!-- =================================================
+             DJANGO MESSAGES
+        ================================================== -->
+
+        {% if messages %}
+
+        <div class="messages">
+
+            {% for message in messages %}
+
+            <div class="alert {% if message.tags %}{{ message.tags }}{% endif %}">
+
+                <i class="fas fa-info-circle"></i>
+
+                {{ message }}
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        {% endif %}
+
+
+        <!-- =================================================
+             LOGIN FORM
+        ================================================== -->
+
+        <form method="POST"
+              action="{% url 'homepage:login_view' %}"
+              id="loginForm">
+
+            {% csrf_token %}
+
+
+            <!-- =================================================
+                 LOGIN MODE SELECTOR
+            ================================================== -->
+
+            <div class="login-modes">
+
+
+                <!-- EMAIL -->
+                <button type="button"
+                        class="mode-btn active"
+                        id="emailModeBtn"
+                        onclick="showMode('email')">
+
+                    <i class="fas fa-envelope"></i>
+
+                    Email
+
+                </button>
+
+
+                <!-- OTP -->
+                <button type="button"
+                        class="mode-btn"
+                        id="otpModeBtn"
+                        onclick="showMode('otp')">
+
+                    <i class="fas fa-key"></i>
+
+                    OTP
+
+                </button>
+
+
+                <!-- FACE -->
+                <button type="button"
+                        class="mode-btn"
+                        id="faceModeBtn"
+                        onclick="showMode('face')"
+                        style="display: none;">
+                </button>
+
+            </div>
+
+
+            <!-- =================================================
+                 LOGIN TYPE
+            ================================================== -->
+
+            <input type="hidden"
+                   name="login_type"
+                   id="loginType"
+                   value="email">
+
+
+            <!-- =================================================
+                 EMAIL LOGIN
+            ================================================== -->
+
+            <div id="emailBox"
+                 class="login-box">
+
+
+                <!-- EMAIL -->
+                <div class="form-group">
+
+                    <label for="emailInput">
+
+                        <i class="fas fa-envelope"></i>
+
+                        Email Address
+
+                    </label>
+
+
+                    <input type="email"
+                           name="email"
+                           id="emailInput"
+                           placeholder="Enter your email address"
+                           autocomplete="off"
+
+                           >
+
+                </div>
+
+
+                <!-- PASSWORD -->
+                <div class="form-group">
+
+                    <label for="passwordInput">
+
+                        <i class="fas fa-lock"></i>
+
+                        Password
+
+                    </label>
+
+
+                    <div class="password-input">
+
+                        <input type="password"
+                               name="password"
+                               id="passwordInput"
+                               placeholder="Enter your password"
+                               autocomplete="off"
+                              >
+
+
+                        <!-- SHOW/HIDE PASSWORD -->
+                        <button type="button"
+                                class="toggle-password"
+                                onclick="togglePassword()"
+                                aria-label="Show or hide password">
+
+                            <i class="fas fa-eye"
+                               id="eyeIcon"></i>
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 OTP LOGIN
+            ================================================== -->
+
+            <div id="otpBox"
+                 class="login-box"
+                 style="display: none;">
+
+                <div class="form-group">
+
+                    <label for="otpInput">
+
+                        <i class="fas fa-mobile-screen-button"></i>
+
+                        Email / Phone Number
+
+                    </label>
+
+
+                    <input type="text"
+                           name="otp_login"
+                           id="otpInput"
+                           placeholder="Enter email or phone number"
+                           autocomplete="tel">
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 FACE LOGIN
+            ================================================== -->
+
+            <div id="faceBox"
+                 class="login-box"
+                 style="display: none;">
+
+                <div class="form-group">
+
+                    <label>
+
+                        <i class="fas fa-camera"></i>
+
+                        Face Recognition
+
+                    </label>
+
+
+                    <div class="face-recognition-area">
+
+
+                        <!-- FACE PLACEHOLDER -->
+                        <div class="face-placeholder">
+
+                            <i class="fas fa-face-smile"></i>
+
+                            <p>
+                                Position your face in the frame
+                            </p>
+
+                        </div>
+
+
+                        <!-- FACE CAPTURE BUTTON -->
+                        <button type="button"
+                                class="face-capture-btn"
+                                onclick="captureFace()">
+
+                            <i class="fas fa-camera"></i>
+
+                            Capture & Login
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- FACE IMAGE -->
+                <input type="hidden"
+                       name="face_image"
+                       id="faceImageData">
+
+            </div>
+
+
+            <!-- =================================================
+                 REMEMBER ME + FORGOT PASSWORD
+            ================================================== -->
+
+            <div class="form-options">
+
+
+                <!-- REMEMBER ME -->
+                <label class="checkbox-label">
+
+                    <input type="checkbox"
+                           name="remember"
+                           checked>
+
+                    <span class="checkmark"></span>
+
+                    Remember me
+
+                </label>
+
+
+                <!-- FORGOT PASSWORD -->
+                <a href="#"
+                   class="forgot-password"
+                   onclick="forgotPassword(event)">
+
+                    Forgot password?
+
+                </a>
+
+            </div>
+
+
+            <!-- =================================================
+                 SUBMIT BUTTON
+            ================================================== -->
+
+            <button type="submit"
+                    class="submit-btn"
+                    id="submitBtn">
+
+                <i class="fas fa-sign-in-alt"
+                   id="submitIcon"></i>
+
+                <span id="submitText">
+                    Login
+                </span>
+
+            </button>
+
+        </form>
+
+
+        <!-- =================================================
+             DIVIDER
+        ================================================== -->
+
+        <div class="divider">
+
+            <span>
+                Or continue with
+            </span>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     OTP VERIFICATION OVERLAY
+========================================================= -->
+
+{% if otp_show %}
+
+<div id="otp-overlay"
+     style="display: flex;">
+
+    <div class="otp-box">
+
+        {% include "homepage/verify_otp2.html" %}
+
+    </div>
+
+</div>
+
+{% endif %}
+
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
+
+<script>
+
+
+    /* ============================================================
+       LOGIN MODE SWITCHING
+    ============================================================ */
+
+    function showMode(mode) {
+
+        /* -----------------------------------------
+           Get elements
+        ----------------------------------------- */
+
+        const emailBox = document.getElementById("emailBox");
+        const otpBox = document.getElementById("otpBox");
+        const faceBox = document.getElementById("faceBox");
+
+        const emailInput = document.getElementById("emailInput");
+        const passwordInput = document.getElementById("passwordInput");
+        const otpInput = document.getElementById("otpInput");
+
+        const loginType = document.getElementById("loginType");
+
+        const submitBtn = document.getElementById("submitBtn");
+        const submitIcon = document.getElementById("submitIcon");
+        const submitText = document.getElementById("submitText");
+
+
+        /* -----------------------------------------
+           Remove active class
+        ----------------------------------------- */
+
+        document
+            .querySelectorAll(".mode-btn")
+            .forEach(function(btn) {
+
+                btn.classList.remove("active");
+
+            });
+
+
+        /* -----------------------------------------
+           Hide all login boxes
+        ----------------------------------------- */
+
+        emailBox.style.display = "none";
+        otpBox.style.display = "none";
+        faceBox.style.display = "none";
+
+
+        /* -----------------------------------------
+           Remove required from all inputs
+        ----------------------------------------- */
+
+        emailInput.required = false;
+        passwordInput.required = false;
+        otpInput.required = false;
+
+
+        /* ========================================================
+           EMAIL LOGIN
+        ======================================================== */
+
+        if (mode === "email") {
+
+            document
+                .getElementById("emailModeBtn")
+                .classList.add("active");
+
+            emailBox.style.display = "block";
+
+            emailInput.required = true;
+            passwordInput.required = true;
+
+            loginType.value = "email";
+
+
+            /* Button */
+
+            submitText.textContent = "Login";
+
+            submitIcon.className = "fas fa-sign-in-alt";
+
+            submitBtn.style.display = "block";
+
+        }
+
+
+        /* ========================================================
+           OTP LOGIN
+        ======================================================== */
+
+        else if (mode === "otp") {
+
+            document
+                .getElementById("otpModeBtn")
+                .classList.add("active");
+
+            otpBox.style.display = "block";
+
+            otpInput.required = true;
+
+            loginType.value = "otp";
+
+
+            /* Button */
+
+            submitText.textContent = "Send OTP";
+
+            submitIcon.className = "fas fa-paper-plane";
+
+            submitBtn.style.display = "block";
+
+        }
+
+
+        /* ========================================================
+           FACE LOGIN
+        ======================================================== */
+
+        else if (mode === "face") {
+
+            document
+                .getElementById("faceModeBtn")
+                .classList.add("active");
+
+            faceBox.style.display = "block";
+
+            loginType.value = "face";
+
+
+            /* Button */
+
+            submitText.textContent = "Face Login";
+
+            submitIcon.className = "fas fa-camera";
+
+            submitBtn.style.display = "block";
+
+        }
+
+    }
+
+
+
+    /* ============================================================
+       PASSWORD SHOW / HIDE
+    ============================================================ */
+
+    function togglePassword() {
+
+        const passwordInput =
+            document.getElementById("passwordInput");
+
+        const eyeIcon =
+            document.getElementById("eyeIcon");
+
+
+        if (passwordInput.type === "password") {
+
+            passwordInput.type = "text";
+
+            eyeIcon.className = "fas fa-eye-slash";
+
+        }
+
+        else {
+
+            passwordInput.type = "password";
+
+            eyeIcon.className = "fas fa-eye";
+
+        }
+
+    }
+
+
+
+    /* ============================================================
+       FACE CAPTURE
+    ============================================================ */
+
+    function captureFace() {
+
+        /*
+           Face recognition is not implemented yet.
+
+           This function prevents the browser from throwing:
+
+           ReferenceError: captureFace is not defined
+        */
+
+
+        const faceImageData =
+            document.getElementById("faceImageData");
+
+
+        /*
+           Later, the webcam image/base64 data
+           can be stored here.
+        */
+
+        if (!faceImageData.value) {
+
+            alert(
+                "Face capture is not connected yet. " +
+                "Webcam face recognition needs to be implemented."
+            );
+
+            return;
+
+        }
+
+    }
+
+
+
+    /* ============================================================
+       FORGOT PASSWORD
+    ============================================================ */
+
+    function forgotPassword(event) {
+
+        if (event) {
+
+            event.preventDefault();
+
+        }
+
+        /*
+           Replace this later with your
+           forgot-password URL.
+        */
+
+        alert("Forgot password functionality is not implemented yet.");
+
+    }
+
+
+
+    /* ============================================================
+       INITIAL LOGIN MODE
+    ============================================================ */
+
+    /*
+       Make sure the page starts in Email mode.
+    */
+
+    document.addEventListener("DOMContentLoaded", function() {
+
+        showMode("email");
+
+    });
+
+
+</script>
+
+
+</body>
+</html>
+

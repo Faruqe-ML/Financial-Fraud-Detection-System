@@ -1,0 +1,42 @@
+<div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon purple">
+                        <i class="fas fa-arrow-right-arrow-left"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number">{{ metrics.total_transaction }}</span>
+                        <span class="stat-label">Total Transactions</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon red">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number">{{ metrics.fraud_detection }}</span>
+                        <span class="stat-label">Fraud Detected</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number">{{ metrics.detection_rate }}%</span>
+                        <span class="stat-label">Detection Rate</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon yellow">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+
+                    <div class="stat-info">
+                        <span class="stat-number">{{ metrics.fraud_amount }}</span>
+                        <span class="stat-label">Fraud Amount</span>
+                    </div>
+                </div>
+            </div>

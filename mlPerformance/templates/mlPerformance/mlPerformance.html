@@ -1,0 +1,1721 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>ML Performance - Fraud Detection System</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+          rel="stylesheet">
+    <!-- Plotly -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+
+    <link rel="stylesheet" href="{% static 'mlPerformance/css/mlPerformance.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chatbot.css' %}">
+</head>
+<body>
+
+<!-- TOPBAR -->
+{% include 'components/topbar.html' %}
+
+<div class="app-container">
+    <!-- SIDEBAR -->
+    {% include 'components/sidebar.html' %}
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1><i class="fas fa-robot"></i> ML Performance</h1>
+                <p>Monitor and analyze machine learning model performance metrics</p>
+            </div>
+
+        </div>
+
+
+
+        <!-- STATS CARDS -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-icon purple">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-number" id="totalModels">4</span>
+                    <span class="stat-label">Total Models</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-number" id="activeModels">Random Forest</span>
+                    <span class="stat-label">Active Models</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon yellow">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-number" id="trainingModels">3</span>
+                    <span class="stat-label">Training</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon blue">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-number" id="avgAccuracy">98.31%</span>
+                    <span class="stat-label">Avg Accuracy</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon red">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-number" id="totalErrors">0.6%</span>
+                    <span class="stat-label">Total Errors</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon orange">
+                    <i class="fas fa-arrow-up"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-number" id="bestModel">Random Forest</span>
+                    <span class="stat-label">Best Model</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHARTS GRID -->
+        <div class="charts-grid">
+            <!-- Chart 1: Model Performance Comparison -->
+            <div class="chart-card full-width">
+                <div class="chart-header">
+                    <h3><i class="fas fa-chart-bar"></i> Model Performance Comparison</h3>
+                    <span class="chart-badge">Grouped Bar</span>
+                </div>
+                <div class="chart-body">
+                    <div id="performanceChart" class="chart-container"></div>
+                </div>
+            </div>
+
+            <!-- Chart 2: Confusion Matrix -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-th"></i> Confusion Matrix</h3>
+                    <span class="chart-badge">Heatmap</span>
+                </div>
+                <div class="chart-body">
+                    <div id="confusionMatrixChart" class="chart-container"></div>
+                </div>
+            </div>
+
+            <!-- Chart 3: ROC Curve -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-chart-line"></i> ROC Curve</h3>
+                    <span class="chart-badge">Line Chart</span>
+                </div>
+                <div class="chart-body">
+                    <div id="rocChart" class="chart-container"></div>
+                </div>
+            </div>
+
+            <div class="chart-card feature-importance-full">
+
+                <div class="chart-header">
+                    <h3>
+                        <i class="fas fa-chart-bar"></i>
+                        Feature Importance
+                    </h3>
+
+                    <span class="chart-badge">
+            Horizontal Bar
+        </span>
+                </div>
+
+                <div class="chart-body">
+                    <div
+                            id="featureImportanceChart"
+                            class="chart-container">
+                    </div>
+                </div>
+
+            </div>
+
+
+            <!-- MODEL TABLE -->
+            <div class="table-container">
+
+                <div class="table-header">
+        <span class="table-title">
+            <i class="fas fa-list"></i>
+            Models
+        </span>
+
+                    <span class="table-count" id="rowCount">
+            Showing 0 records
+        </span>
+                </div>
+
+
+                <div class="table-wrapper">
+
+                    <table
+                            class="model-table"
+                            id="modelTable"
+                    >
+
+                        <thead>
+
+                        <tr>
+
+                            <th>
+                                Model Name
+                            </th>
+
+                            <th>
+                                Accuracy
+                            </th>
+
+                            <th>
+                                Precision
+                            </th>
+
+                            <th>
+                                Recall
+                            </th>
+
+                            <th>
+                                F1 Score
+                            </th>
+
+                            <th>
+                                ROC-AUC
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                            <th>
+                                Train Time
+                            </th>
+
+                            <th>
+                                Actions
+                            </th>
+
+                        </tr>
+
+                        </thead>
+
+
+                        <tbody id="tableBody">
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+            </div>
+    </main>
+</div>
+{% include 'components/chatbot.html' %}
+
+<script src="{% static 'js/chatbot.js' %}"></script>
+<script src="{% static 'js/ml_performance.js' %}"></script>
+{{ performance_data|json_script:"performance-data" }}
+{{ confusion_matrix_data|json_script:"confusion-matrix-data" }}
+{{ roc_data|json_script:"roc-data" }}
+{{ feature_importance_data|json_script:"feature-importance-data" }}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+    const element = document.getElementById("performance-data");
+
+    if (!element) {
+        console.error("performance-data NOT FOUND");
+        return;
+    }
+
+    try {
+
+        const data = JSON.parse(element.textContent);
+
+        console.log("PERFORMANCE DATA:", data);
+
+        if (!Array.isArray(data)) {
+            console.error("Expected array:", data);
+            return;
+        }
+
+        updatePerformanceChart(data);
+
+    } catch (error) {
+
+        console.error("PERFORMANCE JSON ERROR:", error);
+
+    }
+
+});
+
+
+function updatePerformanceChart(data) {
+
+    const models = data.map(d => d.Model || "Unknown");
+
+
+    /* ================= ACCURACY ================= */
+
+    const trace1 = {
+
+        x: models,
+
+        y: data.map(
+            d => Number(d.Accuracy || 0) * 100
+        ),
+
+        type: "bar",
+
+        name: "Accuracy",
+
+        marker: {
+            color: "#6C3CE1"
+        },
+
+        text: data.map(
+            d => `Accuracy<br>${(Number(d.Accuracy || 0) * 100).toFixed(2)}%`
+        ),
+
+        textposition: "inside",
+
+        textfont: {
+            color: "white",
+            size: 30
+        },
+
+        hovertemplate:
+            "<b>%{x}</b><br>" +
+            "Accuracy: %{y:.2f}%" +
+            "<extra></extra>"
+    };
+
+
+    /* ================= PRECISION ================= */
+
+    const trace2 = {
+
+        x: models,
+
+        y: data.map(
+            d => Number(d.Precision || 0) * 100
+        ),
+
+        type: "bar",
+
+        name: "Precision",
+
+        marker: {
+            color: "#00D4AA"
+        },
+
+        text: data.map(
+            d => `Precision<br>${(Number(d.Precision || 0) * 100).toFixed(2)}%`
+        ),
+
+        textposition: "inside",
+
+        textfont: {
+            color: "white",
+            size: 30
+        },
+
+        hovertemplate:
+            "<b>%{x}</b><br>" +
+            "Precision: %{y:.2f}%" +
+            "<extra></extra>"
+    };
+
+
+    /* ================= RECALL ================= */
+
+    const trace3 = {
+
+        x: models,
+
+        y: data.map(
+            d => Number(d.Recall || 0) * 100
+        ),
+
+        type: "bar",
+
+        name: "Recall",
+
+        marker: {
+            color: "#FFB432"
+        },
+
+        text: data.map(
+            d => `Recall<br>${(Number(d.Recall || 0) * 100).toFixed(2)}%`
+        ),
+
+        textposition: "inside",
+
+        textfont: {
+            color: "white",
+            size: 30
+        },
+
+        hovertemplate:
+            "<b>%{x}</b><br>" +
+            "Recall: %{y:.2f}%" +
+            "<extra></extra>"
+    };
+
+
+    /* ================= F1 SCORE ================= */
+
+    const trace4 = {
+
+        x: models,
+
+        y: data.map(
+            d => Number(d.F1 || 0) * 100
+        ),
+
+        type: "bar",
+
+        name: "F1 Score",
+
+        marker: {
+            color: "#FF6B6B"
+        },
+
+        text: data.map(
+            d => `F1 Score<br>${(Number(d.F1 || 0) * 100).toFixed(2)}%`
+        ),
+
+        textposition: "inside",
+
+        textfont: {
+            color: "white",
+            size: 30
+        },
+
+        hovertemplate:
+            "<b>%{x}</b><br>" +
+            "F1 Score: %{y:.2f}%" +
+            "<extra></extra>"
+    };
+
+
+    /* ================= ROC-AUC ================= */
+
+    const trace5 = {
+
+        x: models,
+
+        y: data.map(
+            d => Number(d["ROC-AUC"] || 0) * 100
+        ),
+
+        type: "bar",
+
+        name: "ROC-AUC",
+
+        marker: {
+            color: "#8B6FE8"
+        },
+
+        text: data.map(
+            d => `ROC-AUC<br>${(Number(d["ROC-AUC"] || 0) * 100).toFixed(2)}%`
+        ),
+
+        textposition: "inside",
+
+        textfont: {
+            color: "white",
+            size: 30
+        },
+
+        hovertemplate:
+            "<b>%{x}</b><br>" +
+            "ROC-AUC: %{y:.2f}%" +
+            "<extra></extra>"
+    };
+
+
+    /* ================= LAYOUT ================= */
+
+    const layout = {
+
+        template: "plotly_dark",
+
+        margin: {
+            l: 60,
+            r: 20,
+            t: 30,
+            b: 90
+        },
+
+        paper_bgcolor:
+            "rgba(0,0,0,0)",
+
+        plot_bgcolor:
+            "rgba(0,0,0,0)",
+
+        barmode: "group",
+
+        bargap: 0.20,
+
+        bargroupgap: 0.05,
+
+        xaxis: {
+
+            gridcolor:
+                "rgba(255,255,255,0.05)",
+
+            tickfont: {
+                color: "#B8B8D0",
+                size: 11
+            },
+
+            tickangle: -20
+        },
+
+        yaxis: {
+
+            gridcolor:
+                "rgba(255,255,255,0.05)",
+
+            tickfont: {
+                color: "#B8B8D0"
+            },
+
+            title: "Score (%)",
+
+            titlefont: {
+                color: "#B8B8D0"
+            },
+
+            ticksuffix: "%",
+
+            range: [0, 100]
+        },
+
+        legend: {
+
+            orientation: "h",
+
+            y: -0.25,
+
+            font: {
+                color: "#B8B8D0",
+                size: 11
+            }
+        },
+
+        uniformtext: {
+            minsize: 8,
+            mode: "hide"
+        }
+    };
+
+
+    Plotly.newPlot(
+        "performanceChart",
+
+        [
+            trace1,
+            trace2,
+            trace3,
+            trace4,
+            trace5
+        ],
+
+        layout,
+
+        {
+            responsive: true,
+            displayModeBar: false
+        }
+    );
+
+}
+
+
+    document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        loadConfusionMatrixChart();
+
+    }
+);
+
+
+function loadConfusionMatrixChart() {
+
+    const element =
+        document.getElementById(
+            "confusion-matrix-data"
+        );
+
+    if (!element) {
+
+        console.error(
+            "confusion-matrix-data NOT FOUND"
+        );
+
+        return;
+    }
+
+    try {
+
+        const data =
+            JSON.parse(
+                element.textContent
+            );
+
+        console.log(
+            "CONFUSION MATRIX DATA:",
+            data
+        );
+
+        if (
+            !Array.isArray(data) ||
+            data.length === 0
+        ) {
+
+            console.error(
+                "No confusion matrix data"
+            );
+
+            return;
+        }
+
+        updateConfusionMatrixChart(data);
+
+    } catch (error) {
+
+        console.error(
+            "CONFUSION MATRIX JSON ERROR:",
+            error
+        );
+
+    }
+}
+
+
+function updateConfusionMatrixChart(data) {
+
+    const model = data[0];
+
+    const matrix =
+        model.confusion_matrix;
+
+
+    const trace = {
+
+        z: matrix,
+
+        x: [
+            "Predicted Safe",
+            "Predicted Fraud"
+        ],
+
+        y: [
+            "Actual Safe",
+            "Actual Fraud"
+        ],
+
+        type: "heatmap",
+
+        colorscale: [
+            [0, "#0A0A1A"],
+            [0.33, "#6C3CE1"],
+            [0.66, "#FFB432"],
+            [1, "#FF6B6B"]
+        ],
+
+        text: matrix.map(
+            row =>
+                row.map(
+                    value =>
+                        Number(value)
+                            .toLocaleString()
+                )
+        ),
+
+        texttemplate:
+            "%{text}",
+
+        textfont: {
+            color: "#FFFFFF",
+            size: 18
+        },
+
+        hovertemplate:
+            "<b>%{y}</b><br>" +
+            "%{x}: %{z:,}" +
+            "<extra></extra>"
+    };
+
+
+    const layout = {
+
+        template: "plotly_dark",
+
+        title: {
+
+            text:
+                "Confusion Matrix - " +
+                model.model_name,
+
+            font: {
+                color: "#FFFFFF",
+                size: 16
+            }
+        },
+
+        margin: {
+            l: 110,
+            r: 30,
+            t: 60,
+            b: 80
+        },
+
+        paper_bgcolor:
+            "rgba(0,0,0,0)",
+
+        plot_bgcolor:
+            "rgba(0,0,0,0)",
+
+        xaxis: {
+
+            title: {
+                text: "Predicted Class",
+                font: {
+                    color: "#B8B8D0"
+                }
+            },
+
+            tickfont: {
+                color: "#B8B8D0"
+            }
+        },
+
+        yaxis: {
+
+            title: {
+                text: "Actual Class",
+                font: {
+                    color: "#B8B8D0"
+                }
+            },
+
+            tickfont: {
+                color: "#B8B8D0"
+            },
+
+            autorange: "reversed"
+        }
+    };
+
+
+    Plotly.newPlot(
+        "confusionMatrixChart",
+        [trace],
+        layout,
+        {
+            responsive: true,
+            displayModeBar: false
+        }
+    );
+}
+
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const element = document.getElementById("roc-data");
+
+    if (!element) {
+        console.error("roc-data NOT FOUND");
+        return;
+    }
+
+    try {
+
+        const data = JSON.parse(element.textContent);
+
+        console.log("ROC DATA:", data);
+
+        if (!Array.isArray(data) || data.length === 0) {
+            console.error("No ROC data found");
+            return;
+        }
+
+        updateROCChart(data);
+
+    } catch (error) {
+
+        console.error("ROC JSON ERROR:", error);
+
+    }
+
+});
+
+
+function updateROCChart(data) {
+
+    const colors = [
+        "#6C3CE1",
+        "#00D4AA",
+        "#FFB432",
+        "#FF6B6B"
+    ];
+
+
+    // ==========================================
+    // ACTUAL ROC CURVES
+    // ==========================================
+
+    const traces = data.map(function (model, index) {
+
+        return {
+
+            x: model.fpr,
+
+            y: model.tpr,
+
+            type: "scatter",
+
+            mode: "lines",
+
+            name:
+                model.model_name +
+                " (AUC " +
+                model.roc_auc +
+                "%)",
+
+            line: {
+                color: colors[index % colors.length],
+                width: 3
+            },
+
+            hovertemplate:
+                "<b>" +
+                model.model_name +
+                "</b><br>" +
+
+                "FPR: %{x:.4f}<br>" +
+
+                "TPR: %{y:.4f}<br>" +
+
+                "AUC: " +
+                model.roc_auc +
+                "%" +
+
+                "<extra></extra>"
+        };
+
+    });
+
+
+    // ==========================================
+    // RANDOM CLASSIFIER LINE
+    // ==========================================
+
+    traces.push({
+
+        x: [0, 1],
+
+        y: [0, 1],
+
+        type: "scatter",
+
+        mode: "lines",
+
+        name: "Random Classifier",
+
+        line: {
+
+            color: "rgba(255,255,255,0.3)",
+
+            width: 1.5,
+
+            dash: "dash"
+
+        },
+
+        hoverinfo: "skip"
+
+    });
+
+
+    // ==========================================
+    // LAYOUT
+    // ==========================================
+
+    const layout = {
+
+        template: "plotly_dark",
+
+        margin: {
+            l: 65,
+            r: 20,
+            t: 30,
+            b: 90
+        },
+
+        paper_bgcolor:
+            "rgba(0,0,0,0)",
+
+        plot_bgcolor:
+            "rgba(0,0,0,0)",
+
+        xaxis: {
+
+            title: {
+                text: "False Positive Rate (FPR)"
+            },
+
+            range: [0, 1],
+
+            gridcolor:
+                "rgba(255,255,255,0.05)",
+
+            zerolinecolor:
+                "rgba(255,255,255,0.15)"
+        },
+
+        yaxis: {
+
+            title: {
+                text: "True Positive Rate (TPR)"
+            },
+
+            range: [0, 1],
+
+            gridcolor:
+                "rgba(255,255,255,0.05)",
+
+            zerolinecolor:
+                "rgba(255,255,255,0.15)"
+        },
+
+        legend: {
+
+            orientation: "h",
+
+            y: -0.20,
+
+            x: 0,
+
+            font: {
+                size: 11
+            }
+        }
+
+    };
+
+
+    // ==========================================
+    // CREATE ROC CHART
+    // ==========================================
+
+    Plotly.newPlot(
+
+        "rocChart",
+
+        traces,
+
+        layout,
+
+        {
+            responsive: true,
+            displayModeBar: false
+        }
+
+    );
+
+}
+
+
+    document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        loadFeatureImportanceChart();
+
+    }
+);
+
+
+function loadFeatureImportanceChart() {
+
+    const element =
+        document.getElementById(
+            "feature-importance-data"
+        );
+
+
+    if (!element) {
+
+        console.error(
+            "feature-importance-data NOT FOUND"
+        );
+
+        return;
+    }
+
+
+    try {
+
+        const data =
+            JSON.parse(
+                element.textContent
+            );
+
+
+        console.log(
+            "FEATURE IMPORTANCE DATA:",
+            data
+        );
+
+
+        if (
+            !Array.isArray(data) ||
+            data.length === 0
+        ) {
+
+            console.error(
+                "No feature importance data found"
+            );
+
+            return;
+        }
+
+
+        updateFeatureImportanceChart(data);
+
+
+    } catch (error) {
+
+        console.error(
+            "FEATURE IMPORTANCE JSON ERROR:",
+            error
+        );
+
+    }
+
+}
+
+
+function updateFeatureImportanceChart(data) {
+
+    /*
+       Currently displaying the first model
+       that contains feature importance.
+    */
+
+    const model = data[0];
+
+
+    if (
+        !model ||
+        !model.feature_importance ||
+        model.feature_importance.length === 0
+    ) {
+
+        console.error(
+            "Feature importance not available"
+        );
+
+        return;
+    }
+
+
+    const featureData =
+        model.feature_importance;
+
+
+    // ==========================================
+    // FEATURES
+    // ==========================================
+
+    const features =
+        featureData.map(
+            item => item.feature
+        );
+
+
+    // ==========================================
+    // IMPORTANCE
+    // ==========================================
+
+    const importance =
+        featureData.map(
+            item =>
+                Number(
+                    item.importance || 0
+                )
+        );
+
+
+    // ==========================================
+    // CHART
+    // ==========================================
+
+    const trace = {
+
+        y: features,
+
+        x: importance,
+
+        type: "bar",
+
+        orientation: "h",
+
+        marker: {
+
+            color: importance,
+
+            colorscale: [
+
+                [0, "#6C3CE1"],
+
+                [0.5, "#FFB432"],
+
+                [1, "#FF6B6B"]
+
+            ],
+
+            showscale: false
+
+        },
+
+        text: importance.map(
+            value =>
+                (value * 100).toFixed(2) + "%"
+        ),
+
+        textposition: "outside",
+
+        textfont: {
+
+            color: "white",
+
+            size: 11
+
+        },
+
+        hovertemplate:
+
+            "<b>%{y}</b><br>" +
+
+            "Importance: %{x:.2%}" +
+
+            "<extra></extra>"
+
+    };
+
+
+    // ==========================================
+    // LAYOUT
+    // ==========================================
+
+    const layout = {
+
+        template: "plotly_dark",
+
+        title: {
+
+            text:
+                "Feature Importance - " +
+                model.model_name
+
+        },
+
+        margin: {
+
+            l: 170,
+
+            r: 60,
+
+            t: 70,
+
+            b: 50
+
+        },
+
+        paper_bgcolor:
+            "rgba(0,0,0,0)",
+
+        plot_bgcolor:
+            "rgba(0,0,0,0)",
+
+        xaxis: {
+
+            gridcolor:
+                "rgba(255,255,255,0.05)",
+
+            tickfont: {
+
+                color: "#B8B8D0"
+
+            },
+
+            title: {
+
+                text: "Feature Importance",
+
+                font: {
+
+                    color: "#B8B8D0"
+
+                }
+
+            },
+
+            tickformat: ".0%",
+
+            range: [0, 1]
+
+        },
+
+        yaxis: {
+
+            gridcolor:
+                "rgba(255,255,255,0.05)",
+
+            tickfont: {
+
+                color: "#B8B8D0"
+
+            },
+
+            automargin: true
+
+        }
+
+    };
+
+
+    Plotly.newPlot(
+
+        "featureImportanceChart",
+
+        [trace],
+
+        layout,
+
+        {
+
+            responsive: true,
+
+            displayModeBar: false
+
+        }
+
+    );
+
+}
+
+
+
+    let filteredData = [];
+
+
+/* =========================================
+   LOAD MODEL PERFORMANCE DATA
+========================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        loadModelTable();
+
+    }
+);
+
+
+function loadModelTable() {
+
+    const element =
+        document.getElementById(
+            "performance-data"
+        );
+
+
+    if (!element) {
+
+        console.error(
+            "performance-data NOT FOUND"
+        );
+
+        return;
+    }
+
+
+    try {
+
+        const data =
+            JSON.parse(
+                element.textContent
+            );
+
+
+        console.log(
+            "PERFORMANCE DATA:",
+            data
+        );
+
+
+        if (!Array.isArray(data)) {
+
+            console.error(
+                "Performance data is not an array"
+            );
+
+            return;
+        }
+
+
+        filteredData = data;
+
+
+        renderTable();
+
+    }
+    catch (error) {
+
+        console.error(
+            "PERFORMANCE JSON ERROR:",
+            error
+        );
+
+    }
+
+}
+
+
+/* =========================================
+   RENDER TABLE
+========================================= */
+
+function renderTable() {
+
+    const tbody =
+        document.getElementById(
+            "tableBody"
+        );
+
+
+    if (!tbody) {
+
+        console.error(
+            "tableBody NOT FOUND"
+        );
+
+        return;
+    }
+
+
+    /* ==============================
+       NO DATA
+    ============================== */
+
+    if (
+        !filteredData ||
+        filteredData.length === 0
+    ) {
+
+        tbody.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="9"
+                    style="
+                        text-align:center;
+                        padding:40px;
+                        color:#7A7A9A;
+                    "
+                >
+
+                    <i
+                        class="fas fa-robot"
+                        style="
+                            font-size:40px;
+                            display:block;
+                            margin-bottom:10px;
+                        "
+                    ></i>
+
+                    No models found
+
+                </td>
+
+            </tr>
+
+        `;
+
+
+        updateRowCount(0);
+
+        return;
+    }
+
+
+    /* ==============================
+       CREATE ROWS
+    ============================== */
+
+    tbody.innerHTML =
+        filteredData.map(
+            function (model) {
+
+
+                /* MODEL NAME */
+
+                const modelName =
+                    model.Model ||
+                    "Unknown";
+
+
+                /* METRICS */
+
+                const accuracy =
+                    Number(
+                        model.Accuracy || 0
+                    ) * 100;
+
+
+                const precision =
+                    Number(
+                        model.Precision || 0
+                    ) * 100;
+
+
+                const recall =
+                    Number(
+                        model.Recall || 0
+                    ) * 100;
+
+
+                const f1 =
+                    Number(
+                        model.F1 || 0
+                    ) * 100;
+
+
+                const rocAuc =
+                    Number(
+                        model["ROC-AUC"] || 0
+                    );
+
+
+                /* ACCURACY CLASS */
+
+                let accuracyClass = "low";
+
+
+                if (
+                    accuracy >= 90
+                ) {
+
+                    accuracyClass = "high";
+
+                }
+                else if (
+                    accuracy >= 70
+                ) {
+
+                    accuracyClass = "medium";
+
+                }
+
+
+                /* SAFE MODEL NAME */
+
+                const safeModelName =
+                    modelName
+                        .replace(
+                            /'/g,
+                            "\\'"
+                        );
+
+
+                return `
+
+                    <tr>
+
+                        <!-- MODEL NAME -->
+
+                        <td>
+
+                            <span class="model-name">
+
+                                ${modelName}
+
+                            </span>
+
+                        </td>
+
+
+                        <!-- ACCURACY -->
+
+                        <td>
+
+                            <span
+                                class="
+                                    metric-value
+                                    ${accuracyClass}
+                                "
+                            >
+
+                                ${accuracy.toFixed(2)}%
+
+                            </span>
+
+                        </td>
+
+
+                        <!-- PRECISION -->
+
+                        <td>
+
+                            ${precision.toFixed(2)}%
+
+                        </td>
+
+
+                        <!-- RECALL -->
+
+                        <td>
+
+                            ${recall.toFixed(2)}%
+
+                        </td>
+
+
+                        <!-- F1 SCORE -->
+
+                        <td>
+
+                            ${f1.toFixed(2)}%
+
+                        </td>
+
+
+                        <!-- ROC AUC -->
+
+                        <td>
+
+                            ${rocAuc.toFixed(3)}
+
+                        </td>
+
+
+                        <!-- STATUS -->
+
+                        <td>
+
+                            <span
+                                class="
+                                    status-badge
+                                    active
+                                "
+                            >
+
+                                Active
+
+                            </span>
+
+                        </td>
+
+
+                        <!-- TRAIN TIME -->
+
+                        <td>
+
+                            -
+
+                        </td>
+
+
+                        <!-- ACTION -->
+
+                        <td>
+
+                            <button
+                                type="button"
+                                class="action-btn"
+                                onclick="
+                                    viewModel('${safeModelName}')
+                                "
+                                title="View Model"
+                            >
+
+                                <i class="fas fa-eye"></i>
+
+                            </button>
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+            }
+        ).join("");
+
+
+    updateRowCount(
+        filteredData.length
+    );
+
+
+    console.log(
+        "TABLE RENDERED:",
+        filteredData.length,
+        "models"
+    );
+
+}
+
+
+/* =========================================
+   UPDATE ROW COUNT
+========================================= */
+
+function updateRowCount(count) {
+
+    const rowCount =
+        document.getElementById(
+            "rowCount"
+        );
+
+
+    if (!rowCount) {
+
+        return;
+    }
+
+
+    rowCount.textContent =
+        `Showing ${count} records`;
+
+}
+
+
+/* =========================================
+   VIEW MODEL
+========================================= */
+
+function viewModel(modelName) {
+
+    console.log(
+        "VIEW MODEL:",
+        modelName
+    );
+
+
+    const model =
+        filteredData.find(
+            function (item) {
+
+                return (
+                    item.Model === modelName
+                );
+
+            }
+        );
+
+
+    if (!model) {
+
+        console.error(
+            "MODEL NOT FOUND:",
+            modelName
+        );
+
+        return;
+    }
+
+
+    const accuracy =
+        Number(
+            model.Accuracy || 0
+        ) * 100;
+
+
+    const precision =
+        Number(
+            model.Precision || 0
+        ) * 100;
+
+
+    const recall =
+        Number(
+            model.Recall || 0
+        ) * 100;
+
+
+    const f1 =
+        Number(
+            model.F1 || 0
+        ) * 100;
+
+
+    const rocAuc =
+        Number(
+            model["ROC-AUC"] || 0
+        );
+
+
+    alert(
+
+        "Model: " +
+        model.Model +
+
+        "\n\nAccuracy: " +
+        accuracy.toFixed(2) +
+
+        "%\nPrecision: " +
+        precision.toFixed(2) +
+
+        "%\nRecall: " +
+        recall.toFixed(2) +
+
+        "%\nF1 Score: " +
+        f1.toFixed(2) +
+
+        "%\nROC-AUC: " +
+        rocAuc.toFixed(3)
+
+    );
+
+}
+
+</script>
+</body>
+</html>

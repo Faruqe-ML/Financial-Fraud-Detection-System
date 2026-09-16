@@ -1,0 +1,1012 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>Destination Risk Analysis - Fraud Detection System</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Plotly -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+
+    <link rel="stylesheet" href="{% static 'destination/css/destination.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chatbot.css' %}">
+</head>
+<body>
+
+    <!-- TOPBAR -->
+    {% include 'components/topbar.html' %}
+
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        {% include 'components/sidebar.html' %}
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <div class="page-header">
+                <div>
+                    <h1><i class="fas fa-map-marker-alt"></i> Destination Risk Analysis</h1>
+                    <p>Analyze risk levels of transaction destinations and locations</p>
+                </div>
+
+            </div>
+
+
+            <!-- STATS CARDS -->
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-icon purple">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="totalDestinations">{{ total_destination }}</span>
+                        <span class="stat-label">Total Destinations</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <i class="fas fa-shield-check"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="lowRisk">{{ low_risk }}</span>
+                        <span class="stat-label">Low Risk</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon yellow">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="mediumRisk">{{ medium_risk }}</span>
+                        <span class="stat-label">Medium Risk</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon red">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="highRisk">{{ high_risk }}</span>
+                        <span class="stat-label">High Risk</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="criticalRisk">{{ critical_risk }}</span>
+                        <span class="stat-label">Critical Risk</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <i class="fas fa-percent"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="avgRiskScore">{{ average_risk_score }}%</span>
+                        <span class="stat-label">Average Risk Score</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CHARTS GRID -->
+            <div class="charts-grid">
+                <!-- Chart 1: Risk Distribution -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-pie"></i> Risk Distribution</h3>
+                        <span class="chart-badge">Donut Chart</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="riskDistributionChart" class="chart-container"></div>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Risk by Country -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-bar"></i> Risk by Country</h3>
+                        <span class="chart-badge">Bar Chart</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="countryRiskChart" class="chart-container"></div>
+                    </div>
+                </div>
+
+                <!-- Chart 3: Fraud Amount by Destination -->
+                <div class="chart-card full-width">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-scatter"></i> Fraud Amount by Destination</h3>
+                        <span class="chart-badge">Scatter Plot</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="fraudAmountChart" class="chart-container"></div>
+                    </div>
+                </div>
+
+                <!-- Chart 4: Destination Type Distribution -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-doughnut"></i> Destination Type</h3>
+                        <span class="chart-badge">Doughnut</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="typeDistributionChart" class="chart-container"></div>
+                    </div>
+                </div>
+
+                <!-- Chart 5: Risk Score Histogram -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-histogram"></i> Risk Score Distribution</h3>
+                        <span class="chart-badge">Histogram</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="riskHistogramChart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+
+
+
+        </main>
+    </div>
+    {% include 'components/chatbot.html' %}
+
+<script src="{% static 'js/chatbot.js' %}"></script>
+    <script src="{% static 'js/destination_risk.js' %}"></script>
+    {{ risk_distribution_data|json_script:"risk-distribution-data" }}
+    {{ country_risk_data|json_script:"country-risk-data" }}
+    {{ fraud_amount_data|json_script:"fraud-amount-data" }}
+    {{ type_distribution_data|json_script:"type-distribution-data" }}
+    {{ risk_histogram_data|json_script:"risk-histogram-data" }}
+
+<script>
+    let riskDistributionData = [];
+
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    loadRiskDistributionChart();
+
+});
+
+
+function loadRiskDistributionChart() {
+
+    const element =
+        document.getElementById("risk-distribution-data");
+
+    if (!element) {
+
+        console.error(
+            "ERROR: risk-distribution-data element not found"
+        );
+
+        return;
+    }
+
+    try {
+
+        const data =
+            JSON.parse(element.textContent);
+
+        console.log(
+            "RISK DISTRIBUTION DATA:",
+            data
+        );
+
+        if (
+            !data ||
+            !Array.isArray(data.labels) ||
+            !Array.isArray(data.values)
+        ) {
+
+            console.error(
+                "Invalid risk distribution data:",
+                data
+            );
+
+            return;
+        }
+
+        riskDistributionData = data;
+
+        updateRiskDistributionChart(data);
+
+    } catch (error) {
+
+        console.error(
+            "RISK DISTRIBUTION JSON ERROR:",
+            error
+        );
+    }
+}
+
+
+function updateRiskDistributionChart(data) {
+
+    const trace = {
+
+        values: data.values,
+
+        labels: data.labels,
+
+        type: "pie",
+
+        hole: 0.45,
+
+        marker: {
+            colors: data.colors
+        },
+
+        textinfo: "label+percent",
+
+        textposition: "inside",
+
+        textfont: {
+            color: "#FFFFFF",
+            size: 12
+        },
+
+        hovertemplate:
+            "<b>%{label}</b><br>" +
+            "Customers: %{value:,}<br>" +
+            "Percentage: %{percent}" +
+            "<extra></extra>"
+    };
+
+
+    const layout = {
+
+        template: "plotly_dark",
+
+        margin: {
+            l: 20,
+            r: 20,
+            t: 20,
+            b: 20
+        },
+
+        paper_bgcolor:
+            "rgba(0,0,0,0)",
+
+        plot_bgcolor:
+            "rgba(0,0,0,0)",
+
+        showlegend: true,
+
+        legend: {
+
+            orientation: "h",
+
+            y: -0.1,
+
+            font: {
+                color: "#B8B8D0",
+                size: 12
+            }
+        }
+    };
+
+
+    Plotly.newPlot(
+        "riskDistributionChart",
+        [trace],
+        layout,
+        {
+            responsive: true,
+            displayModeBar: false
+        }
+    );
+}
+
+    function loadCountryRiskChart() {
+
+    const element =
+        document.getElementById("country-risk-data");
+
+    if (!element) {
+
+        console.error(
+            "country-risk-data element not found"
+        );
+
+        return;
+    }
+
+    try {
+
+        const data =
+            JSON.parse(element.textContent);
+
+        console.log(
+            "COUNTRY RISK DATA:",
+            data
+        );
+
+        if (!Array.isArray(data)) {
+
+            console.error(
+                "Expected array:",
+                data
+            );
+
+            return;
+        }
+
+        updateCountryRiskChart(data);
+
+    } catch (error) {
+
+        console.error(
+            "COUNTRY RISK JSON ERROR:",
+            error
+        );
+    }
+}
+
+
+function updateCountryRiskChart(data) {
+
+    const trace1 = {
+
+        x: data.map(d => d.country),
+
+        y: data.map(d => d.total),
+
+        type: "bar",
+
+        name: "Total Customers",
+
+        marker: {
+            color: "#6C3CE1"
+        },
+
+        hovertemplate:
+            "<b>%{x}</b><br>" +
+            "Total Customers: %{y:,}" +
+            "<extra></extra>"
+    };
+
+
+    const trace2 = {
+
+        x: data.map(d => d.country),
+
+        y: data.map(d => d.high_risk),
+
+        type: "bar",
+
+        name: "High Risk",
+
+        marker: {
+            color: "#FF6B6B"
+        },
+
+        hovertemplate:
+            "<b>%{x}</b><br>" +
+            "High Risk: %{y:,}" +
+            "<extra></extra>"
+    };
+
+
+    const layout = {
+
+        template: "plotly_dark",
+
+        margin: {
+            l: 60,
+            r: 20,
+            t: 20,
+            b: 70
+        },
+
+        paper_bgcolor:
+            "rgba(0,0,0,0)",
+
+        plot_bgcolor:
+            "rgba(0,0,0,0)",
+
+        barmode: "group",
+
+        xaxis: {
+
+            gridcolor:
+                "rgba(255,255,255,0.05)",
+
+            tickfont: {
+                color: "#B8B8D0"
+            },
+
+            tickangle: -20
+        },
+
+        yaxis: {
+
+            gridcolor:
+                "rgba(255,255,255,0.05)",
+
+            tickfont: {
+                color: "#B8B8D0"
+            },
+
+            title: "Number of Customers",
+
+            rangemode: "tozero"
+        },
+
+        legend: {
+
+            orientation: "h",
+
+            y: -0.15,
+
+            font: {
+                color: "#B8B8D0"
+            }
+        }
+    };
+
+
+    Plotly.newPlot(
+        "countryRiskChart",
+        [trace1, trace2],
+        layout,
+        {
+            responsive: true,
+            displayModeBar: false
+        }
+    );
+}
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+        loadCountryRiskChart();
+    }
+);
+
+    function loadFraudAmountChart() {
+
+    const element =
+        document.getElementById("fraud-amount-data");
+
+    if (!element) {
+
+        console.error(
+            "fraud-amount-data element not found"
+        );
+
+        return;
+    }
+
+    try {
+
+        const data =
+            JSON.parse(element.textContent);
+
+        console.log(
+            "FRAUD AMOUNT DATA:",
+            data
+        );
+
+        if (!Array.isArray(data)) {
+
+            console.error(
+                "Expected array:",
+                data
+            );
+
+            return;
+        }
+
+        updateFraudAmountChart(data);
+
+    } catch (error) {
+
+        console.error(
+            "FRAUD AMOUNT JSON ERROR:",
+            error
+        );
+    }
+}
+
+
+function updateFraudAmountChart(data) {
+
+    const trace = {
+
+        x: data.map(
+            d => d.name
+        ),
+
+        y: data.map(
+            d => Number(d.fraud_amount || 0)
+        ),
+
+        type: "bar",
+
+        marker: {
+
+            color: data.map(d => {
+
+                const amount =
+                    Number(d.fraud_amount || 0);
+
+                if (amount > 100000) {
+                    return "#FF6B6B";
+                }
+
+                if (amount > 50000) {
+                    return "#FF8A8A";
+                }
+
+                if (amount > 10000) {
+                    return "#FFB432";
+                }
+
+                return "#00D4AA";
+            }),
+
+            opacity: 0.8
+        },
+
+        text: data.map(d =>
+            `$${Number(
+                d.fraud_amount || 0
+            ).toLocaleString()}`
+        ),
+
+        textposition: "outside",
+
+        textfont: {
+            color: "white"
+        },
+
+        hovertemplate:
+            "<b>%{x}</b><br>" +
+            "Fraud Amount: $%{y:,.2f}" +
+            "<extra></extra>"
+    };
+
+
+    const layout = {
+
+        template: "plotly_dark",
+
+        margin: {
+            l: 60,
+            r: 60,
+            t: 30,
+            b: 80
+        },
+
+        paper_bgcolor:
+            "rgba(0,0,0,0)",
+
+        plot_bgcolor:
+            "rgba(0,0,0,0)",
+
+        xaxis: {
+
+            gridcolor:
+                "rgba(255,255,255,0.05)",
+
+            tickfont: {
+                color: "#B8B8D0"
+            },
+
+            tickangle: -20
+        },
+
+        yaxis: {
+
+            gridcolor:
+                "rgba(255,255,255,0.05)",
+
+            tickfont: {
+                color: "#B8B8D0"
+            },
+
+            title: "Fraud Amount ($)",
+
+            tickprefix: "$",
+
+            rangemode: "tozero"
+        }
+    };
+
+
+    Plotly.newPlot(
+        "fraudAmountChart",
+        [trace],
+        layout,
+        {
+            responsive: true,
+            displayModeBar: false
+        }
+    );
+}
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+        loadFraudAmountChart();
+    }
+);
+
+    function loadTypeDistributionChart() {
+
+    const element =
+        document.getElementById(
+            "type-distribution-data"
+        );
+
+    if (!element) {
+
+        console.error(
+            "type-distribution-data element not found"
+        );
+
+        return;
+    }
+
+    try {
+
+        const data =
+            JSON.parse(element.textContent);
+
+        console.log(
+            "TYPE DISTRIBUTION DATA:",
+            data
+        );
+
+        if (
+            !data ||
+            !Array.isArray(data.labels) ||
+            !Array.isArray(data.values)
+        ) {
+
+            console.error(
+                "Invalid type distribution data:",
+                data
+            );
+
+            return;
+        }
+
+        updateTypeDistributionChart(data);
+
+    } catch (error) {
+
+        console.error(
+            "TYPE DISTRIBUTION JSON ERROR:",
+            error
+        );
+    }
+}
+
+function loadTypeDistributionChart() {
+
+    const element =
+        document.getElementById(
+            "type-distribution-data"
+        );
+
+    if (!element) {
+
+        console.error(
+            "type-distribution-data element not found"
+        );
+
+        return;
+    }
+
+    try {
+
+        const data =
+            JSON.parse(element.textContent);
+
+        console.log(
+            "TYPE DISTRIBUTION DATA:",
+            data
+        );
+
+        if (
+            !data ||
+            !Array.isArray(data.labels) ||
+            !Array.isArray(data.values)
+        ) {
+
+            console.error(
+                "Invalid type distribution data:",
+                data
+            );
+
+            return;
+        }
+
+        updateTypeDistributionChart(data);
+
+    } catch (error) {
+
+        console.error(
+            "TYPE DISTRIBUTION JSON ERROR:",
+            error
+        );
+    }
+}
+
+
+function updateTypeDistributionChart(data) {
+
+    const total =
+        data.values.reduce(
+            (sum, val) =>
+                sum + Number(val || 0),
+            0
+        );
+
+    const trace = {
+
+        values: data.values,
+
+        labels: data.labels,
+
+        type: "pie",
+
+        hole: 0.5,
+
+        marker: {
+            colors: data.colors
+        },
+
+        textinfo: "label+percent",
+
+        textposition: "inside",
+
+        textfont: {
+            color: "white",
+            size: 12
+        },
+
+        hovertemplate:
+            "<b>%{label}</b><br>" +
+            "Transactions: %{value:,}<br>" +
+            "Percentage: %{percent}" +
+            "<extra></extra>"
+    };
+
+
+    const layout = {
+
+        template: "plotly_dark",
+
+        margin: {
+            l: 20,
+            r: 20,
+            t: 20,
+            b: 20
+        },
+
+        paper_bgcolor:
+            "rgba(0,0,0,0)",
+
+        plot_bgcolor:
+            "rgba(0,0,0,0)",
+
+        showlegend: true,
+
+        legend: {
+
+            orientation: "h",
+
+            y: -0.1,
+
+            font: {
+                color: "#B8B8D0"
+            }
+        },
+
+        annotations: [{
+
+            font: {
+                size: 16,
+                color: "white"
+            },
+
+            showarrow: false,
+
+            text:
+                `Total<br>${total.toLocaleString()}`
+        }]
+    };
+
+
+    Plotly.newPlot(
+        "typeDistributionChart",
+        [trace],
+        layout,
+        {
+            responsive: true,
+            displayModeBar: false
+        }
+    );
+}
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+        loadTypeDistributionChart();
+    }
+);
+
+
+    function loadRiskHistogramChart() {
+
+    const element =
+        document.getElementById(
+            "risk-histogram-data"
+        );
+
+    if (!element) {
+
+        console.error(
+            "risk-histogram-data element not found"
+        );
+
+        return;
+    }
+
+    try {
+
+        const data =
+            JSON.parse(element.textContent);
+
+        console.log(
+            "RISK HISTOGRAM DATA:",
+            data
+        );
+
+        if (!Array.isArray(data)) {
+
+            console.error(
+                "Expected array:",
+                data
+            );
+
+            return;
+        }
+
+        updateRiskHistogramChart(data);
+
+    } catch (error) {
+
+        console.error(
+            "RISK HISTOGRAM JSON ERROR:",
+            error
+        );
+    }
+}
+
+
+function updateRiskHistogramChart(data) {
+
+    const trace = {
+
+        x: data.map(
+            d => d.label
+        ),
+
+        y: data.map(
+            d => Number(d.count || 0)
+        ),
+
+        type: "bar",
+
+        marker: {
+
+            color: [
+                "#00D4AA",
+                "#FFB432",
+                "#FF8A8A",
+                "#FF6B6B"
+            ],
+
+            opacity: 0.8
+        },
+
+        text: data.map(
+            d => Number(d.count || 0).toLocaleString()
+        ),
+
+        textposition: "outside",
+
+        textfont: {
+            color: "white"
+        },
+
+        hovertemplate:
+            "<b>%{x}</b><br>" +
+            "Customers: %{y:,}" +
+            "<extra></extra>"
+    };
+
+
+    const layout = {
+
+        template: "plotly_dark",
+
+        margin: {
+            l: 60,
+            r: 20,
+            t: 30,
+            b: 60
+        },
+
+        paper_bgcolor:
+            "rgba(0,0,0,0)",
+
+        plot_bgcolor:
+            "rgba(0,0,0,0)",
+
+        xaxis: {
+
+            gridcolor:
+                "rgba(255,255,255,0.05)",
+
+            tickfont: {
+                color: "#B8B8D0"
+            },
+
+            title: "Risk Score Range"
+        },
+
+        yaxis: {
+
+            gridcolor:
+                "rgba(255,255,255,0.05)",
+
+            tickfont: {
+                color: "#B8B8D0"
+            },
+
+            title: "Number of Customers",
+
+            rangemode: "tozero"
+        }
+    };
+
+
+    Plotly.newPlot(
+        "riskHistogramChart",
+        [trace],
+        layout,
+        {
+            responsive: true,
+            displayModeBar: false
+        }
+    );
+}
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+        loadRiskHistogramChart();
+    }
+);
+</script>
+</body>
+</html>

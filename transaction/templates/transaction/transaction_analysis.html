@@ -1,0 +1,154 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>Transaction Analysis - Fraud Detection System</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Plotly -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+
+    <link rel="stylesheet" href="{% static 'transaction/css/transactionAnalysis.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chatbot.css' %}">
+</head>
+<body>
+
+    <!-- TOPBAR -->
+    {% include 'components/topbar.html' %}
+
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        {% include 'components/sidebar.html' %}
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <div class="page-header">
+                <div>
+                    <h1><i class="fas fa-chart-bar"></i> Transaction Analysis</h1>
+                    <p>Deep dive into transaction patterns and fraud detection metrics</p>
+                </div>
+
+            </div>
+
+            <!-- FILTERS -->
+
+
+            <!-- STATS CARDS -->
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-icon purple"><i class="fas fa-arrow-right-arrow-left"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="totalTx">{{ metric.total_transaction}}</span>
+                        <span class="stat-label">Total Transactions</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon red"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="fraudTx">{{ metric.total_fraud }}</span>
+                        <span class="stat-label">Fraudulent</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="safeTx">{{ metric.total_safe }}</span>
+                        <span class="stat-label">Safe</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon yellow"><i class="fas fa-dollar-sign"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="totalAmount">{{ metric.total_amount }}</span>
+                        <span class="stat-label">Total Amount</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fas fa-percent"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="fraudRate">{{ metric.fraud_rate|floatformat:2 }}%</span>
+                        <span class="stat-label">Fraud Rate</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- CHARTS GRID - 5 Different Charts -->
+            <div class="charts-grid">
+                <!-- Chart 1: DONUT CHART - Fraud vs Safe Distribution -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-pie"></i> Fraud vs Safe Distribution</h3>
+                        <span class="chart-badge">Donut Chart</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="donutChart" class="chart-container"></div>
+                    </div>
+                </div>
+
+                <!-- Chart 2: HORIZONTAL BAR CHART - Top Fraud Locations -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-globe"></i> Top Fraud Locations</h3>
+                        <span class="chart-badge">Horizontal Bar</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="locationChart" class="chart-container"></div>
+                    </div>
+                </div>
+
+                <!-- Chart 3: AREA CHART - Cumulative Transactions -->
+                <div class="chart-card full-width">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-area"></i> Cumulative Transaction Growth</h3>
+                        <span class="chart-badge">Area Chart</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="areaChart" class="chart-container"></div>
+                    </div>
+                </div>
+
+                <!-- Chart 4: RADAR CHART - Transaction Type Comparison -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-radar"></i> Transaction Type Comparison</h3>
+                        <span class="chart-badge">Radar Chart</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="radarChart" class="chart-container"></div>
+                    </div>
+                </div>
+
+                <!-- Chart 5: WATERFALL CHART - Amount by Transaction Type -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-waterfall"></i> Amount by Transaction Type</h3>
+                        <span class="chart-badge">Waterfall Chart</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="waterfallChart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    {% include 'components/chatbot.html' %}
+
+<script src="{% static 'js/chatbot.js' %}"></script>
+    <script src="{% static 'js/transaction_analysis.js' %}"></script>
+    {{ donut_chart_data|json_script:"donut-chart-data" }}
+    {{ top_fraud_locations|json_script:"location-chart-data" }}
+    {{ cumulative_growth_data|json_script:"area-chart-data" }}
+    {{ transaction_type_data|json_script:"radar-chart-data" }}
+    {{ transaction_amount_data|json_script:"waterfall-chart-data" }}
+
+<script src="{% static 'transaction/js/transaction_analysis.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<header class="topbar">
+    <div class="logo">
+        <i class="fas fa-shield-halved"></i>
+        <span>Fraud<span>Detect</span></span>
+    </div>
+
+    <div class="topbar-visual">
+        <div class="topbar-bars"><span style="--h:18px; --d:0s"></span> <span style="--h:28px; --d:.1s"></span> <span
+                style="--h:22px; --d:.2s"></span> <span style="--h:36px; --d:.3s"></span> <span
+                style="--h:30px; --d:.4s"></span> <span style="--h:42px; --d:.5s"></span> <span
+                style="--h:25px; --d:.6s"></span> <span style="--h:38px; --d:.7s"></span> <span
+                style="--h:32px; --d:.8s"></span> <span style="--h:45px; --d:.9s"></span> <span
+                style="--h:30px; --d:1s"></span> <span style="--h:40px; --d:1.1s"></span>
+
+            <span style="--h:18px; --d:0s"></span> <span style="--h:28px; --d:.1s"></span> <span
+                    style="--h:22px; --d:.2s"></span> <span style="--h:36px; --d:.3s"></span> <span
+                    style="--h:30px; --d:.4s"></span> <span style="--h:42px; --d:.5s"></span> <span
+                    style="--h:25px; --d:.6s"></span> <span style="--h:38px; --d:.7s"></span> <span
+                    style="--h:32px; --d:.8s"></span> <span style="--h:45px; --d:.9s"></span> <span
+                    style="--h:30px; --d:1s"></span> <span style="--h:40px; --d:1.1s"></span>
+            <span style="--h:18px; --d:0s"></span> <span style="--h:28px; --d:.1s"></span> <span
+                    style="--h:22px; --d:.2s"></span> <span style="--h:36px; --d:.3s"></span> <span
+                    style="--h:30px; --d:.4s"></span> <span style="--h:42px; --d:.5s"></span> <span
+                    style="--h:25px; --d:.6s"></span> <span style="--h:38px; --d:.7s"></span> <span
+                    style="--h:32px; --d:.8s"></span> <span style="--h:45px; --d:.9s"></span> <span
+                    style="--h:30px; --d:1s"></span> <span style="--h:40px; --d:1.1s"></span>
+            <span style="--h:18px; --d:0s"></span> <span style="--h:28px; --d:.1s"></span> <span
+                    style="--h:22px; --d:.2s"></span> <span style="--h:36px; --d:.3s"></span> <span
+                    style="--h:30px; --d:.4s"></span> <span style="--h:42px; --d:.5s"></span> <span
+                    style="--h:25px; --d:.6s"></span> <span style="--h:38px; --d:.7s"></span> <span
+                    style="--h:32px; --d:.8s"></span> <span style="--h:45px; --d:.9s"></span> <span
+                    style="--h:30px; --d:1s"></span> <span style="--h:40px; --d:1.1s"></span>
+            <span style="--h:18px; --d:0s"></span> <span style="--h:28px; --d:.1s"></span> <span
+                    style="--h:22px; --d:.2s"></span> <span style="--h:36px; --d:.3s"></span> <span
+                    style="--h:30px; --d:.4s"></span> <span style="--h:42px; --d:.5s"></span> <span
+                    style="--h:25px; --d:.6s"></span> <span style="--h:38px; --d:.7s"></span> <span
+                    style="--h:32px; --d:.8s"></span> <span style="--h:45px; --d:.9s"></span> <span
+                    style="--h:30px; --d:1s"></span> <span style="--h:40px; --d:1.1s"></span>
+            <span style="--h:18px; --d:0s"></span> <span style="--h:28px; --d:.1s"></span> <span
+                    style="--h:22px; --d:.2s"></span> <span style="--h:36px; --d:.3s"></span> <span
+                    style="--h:30px; --d:.4s"></span> <span style="--h:42px; --d:.5s"></span> <span
+                    style="--h:25px; --d:.6s"></span> <span style="--h:38px; --d:.7s"></span> <span
+                    style="--h:32px; --d:.8s"></span> <span style="--h:45px; --d:.9s"></span> <span
+                    style="--h:30px; --d:1s"></span> <span style="--h:40px; --d:1.1s"></span><span
+                    style="--h:18px; --d:0s"></span> <span style="--h:28px; --d:.1s"></span> <span
+                    style="--h:22px; --d:.2s"></span> <span style="--h:36px; --d:.3s"></span> <span
+                    style="--h:30px; --d:.4s"></span> <span style="--h:42px; --d:.5s"></span> <span
+                    style="--h:25px; --d:.6s"></span> <span style="--h:38px; --d:.7s"></span> <span
+                    style="--h:32px; --d:.8s"></span> <span style="--h:45px; --d:.9s"></span> <span
+                    style="--h:30px; --d:1s"></span> <span style="--h:40px; --d:1.1s"></span>
+
+        </div>
+        <!-- Moving scanner: ONLY ONE -->
+        <div class="topbar-pulse"></div> <!-- Floating particles: ONLY ONE SET -->
+        <div class="topbar-particle p1"></div>
+        <div class="topbar-particle p2"></div>
+        <div class="topbar-particle p3"></div>
+    </div>
+
+    <div class="topbar-right">
+       <span class="user-name">{{ request.session.full_name|default:"Admin" }}</span>
+
+        <a href="{% url 'dashboard:logout' %}" class="logout-btn" title="Logout">
+            <i class="fas fa-sign-out-alt"></i>
+        </a>
+    </div>
+</header>
+

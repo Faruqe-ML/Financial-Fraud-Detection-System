@@ -1,0 +1,412 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Fraud Detection System</title>
+
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'homepage/css/homepage.css' %}">
+    <link rel="stylesheet" href="{% static 'css/animations.css' %}">
+
+
+</head>
+<body>
+    <!-- Navbar -->
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-shield-halved"></i>
+                <h1>Fraud<span>Detect</span></h1>
+            </div>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#dashboard">Dashboard</a>
+                <a href="#about">About</a>
+                <a href="javascript:void(0)" onclick="openAuthPopup()" class="login-btn">
+                    <i class="fas fa-user-lock"></i> Login / Register
+                </a>
+            </div>
+            <div class="hamburger" onclick="toggleMenu()">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-container">
+                <div class="hero-content">
+                    <div class="hero-badge">
+                        <i class="fas fa-shield-check"></i> AI-Powered Security
+                    </div>
+                    <h1>{{ hero.title|safe }}</h1>
+                    <p>{{ hero.subtitle }}</p>
+                    <div class="hero-buttons">
+                        <a href="#dashboard" class="btn-primary">
+                            <i class="fas fa-rocket"></i> {{ hero.button_text }}
+                        </a>
+                        <a href="#features" class="btn-secondary">
+                            <i class="fas fa-play-circle"></i> Learn More
+                        </a>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="hero-stat">
+                            <span class="stat-number" data-target="99.8">0</span>
+                            <span class="stat-label">% Detection Accuracy</span>
+                        </div>
+                        <div class="hero-stat">
+                            <span class="stat-number" data-target="50000">0</span>
+                            <span class="stat-label">+ Transactions Protected</span>
+                        </div>
+                        <div class="hero-stat">
+                            <span class="stat-number" data-target="24">0</span>
+                            <span class="stat-label">/7 Real-time Monitoring</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="animated-shield">
+                        <i class="fas fa-shield-halved"></i>
+                    </div>
+                    <div class="floating-charts">
+                        <div class="chart-card chart-1">
+                            <i class="fas fa-chart-line"></i>
+                            <span>+23%</span>
+                        </div>
+                        <div class="chart-card chart-2">
+                            <i class="fas fa-credit-card"></i>
+                            <span>Secure</span>
+                        </div>
+                        <div class="chart-card chart-3">
+                            <i class="fas fa-bell"></i>
+                            <span>Alerts</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="stats-section">
+            <div class="container">
+                <div class="stats-grid">
+                    {% for stat in stats %}
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="{{ stat.icon }}"></i>
+                        </div>
+                        <div class="stat-number">
+                            <span class="countup" data-target="{{ stat.value }}">0</span>
+                            {% if stat.suffix %}<span>{{ stat.suffix }}</span>{% endif %}
+                        </div>
+                        <div class="stat-label">{{ stat.label }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features-section" id="features">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-badge">Features</span>
+                    <h2>Why Choose <span>FraudDetect</span></h2>
+                    <p>Advanced machine learning algorithms to protect your financial transactions</p>
+                </div>
+                <div class="features-grid">
+                    {% for feature in features %}
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="{{ feature.icon }}"></i>
+                        </div>
+                        <h3>{{ feature.title }}</h3>
+                        <p>{{ feature.description }}</p>
+                        <div class="feature-link">
+                            <a href="{{ feature.link }}">Learn More <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <!-- Dashboard Preview -->
+        <section class="dashboard-preview" id="dashboard">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-badge">Dashboard</span>
+                    <h2>Real-time <span>Fraud Monitoring</span></h2>
+                    <p>Comprehensive analytics dashboard to detect and prevent fraudulent activities</p>
+                </div>
+                <div class="dashboard-container">
+                    <div class="dashboard-card">
+                        <div class="dashboard-header">
+                            <div class="dashboard-tabs">
+                                <span class="tab active">Overview</span>
+                                <span class="tab">Transactions</span>
+                                <span class="tab">Alerts</span>
+                                <span class="tab">Analytics</span>
+                            </div>
+                            <div class="dashboard-status">
+                                <span class="status-dot online"></span>
+                                Live Monitoring
+                            </div>
+                        </div>
+                        <div class="dashboard-grid">
+                            <div class="dashboard-metric">
+                                <div class="metric-icon"><i class="fas fa-arrow-right-arrow-left"></i></div>
+                                <div class="metric-content">
+                                    <span class="metric-label">Total Transactions</span>
+                                    <span class="metric-value" id="totalTx">1,284,567</span>
+                                </div>
+                            </div>
+                            <div class="dashboard-metric">
+                                <div class="metric-icon fraud"><i class="fas fa-exclamation-triangle"></i></div>
+                                <div class="metric-content">
+                                    <span class="metric-label">Fraud Detected</span>
+                                    <span class="metric-value" id="fraudDetected">247</span>
+                                </div>
+                            </div>
+                            <div class="dashboard-metric">
+                                <div class="metric-icon success"><i class="fas fa-check-circle"></i></div>
+                                <div class="metric-content">
+                                    <span class="metric-label">Fraud Rate</span>
+                                    <span class="metric-value" id="fraudRate">0.019%</span>
+                                </div>
+                            </div>
+                            <div class="dashboard-metric">
+                                <div class="metric-icon warning"><i class="fas fa-clock"></i></div>
+                                <div class="metric-content">
+                                    <span class="metric-label">Response Time</span>
+                                    <span class="metric-value" id="responseTime">&lt;1s</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dashboard-chart">
+                            <div class="chart-placeholder">
+                                <div class="chart-bar"></div>
+                                <div class="chart-bar"></div>
+                                <div class="chart-bar"></div>
+                                <div class="chart-bar"></div>
+                                <div class="chart-bar"></div>
+                                <div class="chart-bar"></div>
+                                <div class="chart-bar"></div>
+                                <div class="chart-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works -->
+        <section class="how-it-works" id="about">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-badge">Process</span>
+                    <h2>How It <span>Works</span></h2>
+                    <p>Simple 3-step process to secure your financial transactions</p>
+                </div>
+                <div class="steps-container">
+                    {% for step in steps %}
+                    <div class="step-card">
+                        <div class="step-number">{{ forloop.counter }}</div>
+                        <div class="step-icon">
+                            <i class="{{ step.icon }}"></i>
+                        </div>
+                        <h3>{{ step.title }}</h3>
+                        <p>{{ step.description }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials -->
+        <section class="testimonials">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-badge">Testimonials</span>
+                    <h2>Trusted by <span>Financial Leaders</span></h2>
+                </div>
+                <div class="testimonials-grid">
+                    {% for testimonial in testimonials %}
+                    <div class="testimonial-card">
+                        <div class="testimonial-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p>"{{ testimonial.quote }}"</p>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                            <div class="author-info">
+                                <strong>{{ testimonial.author }}</strong>
+                                <span>{{ testimonial.role }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div class="logo">
+                        <i class="fas fa-shield-halved"></i>
+                        <h1>Fraud Detect
+                        </h1>
+                    </div>
+<!--                    <p>AI-powered financial fraud detection system protecting transactions worldwide.</p>-->
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h4>Product</h4>
+                    <a href="#">Features</a>
+                    <a href="#">Pricing</a>
+                    <a href="#">Documentation</a>
+                    <a href="#">API</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Company</h4>
+                    <a href="#">About</a>
+                    <a href="#">Careers</a>
+                    <a href="#">Blog</a>
+                    <a href="#">Contact</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Support</h4>
+                    <a href="#">Help Center</a>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Security</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 FraudDetect — Next-Gen Financial Security. All rights reserved.</p>
+                <p style="margin-top: 8px; font-size: 0.85rem;">
+                    <i class="fas fa-shield-check"></i> Protecting financial transactions with AI & Machine Learning
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Auth Popup -->
+    <div id="authOverlay" class="popup-overlay">
+        <div class="popup-card">
+            <button class="close-popup" onclick="closeAuth()">✕</button>
+            <div class="popup-body" id="popupBody">
+                <div style="text-align: center; padding: 2rem;">
+                    <div class="loading-spinner"></div>
+                    <p>Loading authentication...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'javascript/homepage.js' %}"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        {% if choose %}
+            openAuthPopup();
+        {% endif %}
+
+    });
+</script>
+    <script>
+        // Toggle mobile menu
+        function toggleMenu() {
+            const navLinks = document.querySelector('.nav-links');
+            navLinks.classList.toggle('active');
+        }
+
+
+
+        function openAuthPopup() {
+    fetch('/choose/')
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('popupBody').innerHTML = html;
+            document.getElementById('authOverlay').classList.add('active');
+        })
+        .catch(err => console.error('Error loading popup:', err));
+}
+
+        function closeAuth() {
+            document.getElementById('authOverlay').classList.remove('active');
+        }
+
+        // Close popup on overlay click
+        document.getElementById('authOverlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAuth();
+            }
+        });
+
+
+
+
+        // Countup animation
+        document.addEventListener('DOMContentLoaded', function() {
+            const counters = document.querySelectorAll('.countup');
+            counters.forEach(counter => {
+                const target = parseInt(counter.dataset.target);
+                let current = 0;
+                const increment = Math.ceil(target / 50);
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        current = target;
+                        clearInterval(timer);
+                    }
+                    counter.textContent = current.toLocaleString();
+                }, 40);
+            });
+
+            // Also animate hero stats
+            const heroStats = document.querySelectorAll('.stat-number[data-target]');
+            heroStats.forEach(stat => {
+                const target = parseFloat(stat.dataset.target);
+                let current = 0;
+                const increment = target / 50;
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        current = target;
+                        clearInterval(timer);
+                    }
+                    if (Number.isInteger(target)) {
+                        stat.textContent = Math.round(current).toLocaleString();
+                    } else {
+                        stat.textContent = current.toFixed(1);
+                    }
+                }, 40);
+            });
+        });
+    </script>
+</body>
+</html>

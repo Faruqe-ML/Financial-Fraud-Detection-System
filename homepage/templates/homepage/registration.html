@@ -1,0 +1,281 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+
+    <title>Register - Financial Fraud Detection System</title>
+
+    <!-- ================= FONT AWESOME ================= -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- ================= GOOGLE FONT ================= -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+          rel="stylesheet">
+
+    <!-- ================= CSS ================= -->
+    <link rel="stylesheet"
+          href="{% static 'homepage/css/registration.css' %}">
+
+    <link rel="stylesheet"
+          href="{% static 'homepage/css/verify_otp2.css' %}">
+</head>
+
+
+<body>
+
+<!-- =========================================================
+     LOGIN CONTAINER
+========================================================= -->
+
+<div class="registration-container">
+
+
+    <!-- =====================================================
+         LEFT PANEL
+    ====================================================== -->
+
+    <div class="registration-left">
+
+        <!-- BRAND -->
+        <div class="brand">
+
+            <div class="brand-logo">
+
+                <i class="fas fa-shield-halved"></i>
+
+                <h1>
+                    Fraud<span>Detect</span>
+                </h1>
+
+            </div>
+
+            <p class="brand-tagline">
+                AI-Powered Financial Security
+            </p>
+
+        </div>
+
+
+        <!-- SECURITY GRAPHIC -->
+        <div class="media-area">
+
+            <div class="security-shield">
+
+                <i class="fas fa-shield-halved"></i>
+
+                <div class="pulse-ring"></div>
+
+            </div>
+
+
+            <!-- FLOATING ICONS -->
+            <div class="floating-icons">
+
+                <span class="float-icon">
+                    <i class="fas fa-lock"></i>
+                </span>
+
+                <span class="float-icon">
+                    <i class="fas fa-credit-card"></i>
+                </span>
+
+                <span class="float-icon">
+                    <i class="fas fa-chart-line"></i>
+                </span>
+
+                <span class="float-icon">
+                    <i class="fas fa-robot"></i>
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- FOOTER -->
+        <div class="registration-footer">
+
+            <p>
+                Already have an account?
+
+
+                <a href="{% url 'homepage:login' %}">
+                    Login here
+                </a>
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         RIGHT PANEL
+    ====================================================== -->
+
+    <div class="registration-right">
+
+
+        <!-- registration HEADER -->
+        <div class="registration-header">
+
+            <h1>Create Account</h1>
+            <p>Join the future of financial fraud detection</p>
+
+        </div>
+
+
+        <!-- =================================================
+             DJANGO MESSAGES
+        ================================================== -->
+
+        {% if messages %}
+
+        <div class="messages">
+
+            {% for message in messages %}
+
+            <div class="alert {% if message.tags %}{{ message.tags }}{% endif %}">
+
+                <i class="fas fa-info-circle"></i>
+
+                {{ message }}
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        {% endif %}
+
+
+        <!-- =================================================
+             Registration FORM
+        ================================================== -->
+
+        <form method="POST" action="{% url 'homepage:submit_registration' %}" id="registrationForm">
+            {% csrf_token %}
+
+
+            <!-- Personal Information -->
+            <div class="form-section">
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> Full Name</label>
+                        <input type="text" name="full_name" placeholder="Enter your full name" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar-alt"></i> Date of Birth</label>
+                        <input type="date" name="date_of_birth" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="form-section">
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-envelope"></i> Email Address</label>
+                        <input type="email" name="email" placeholder="Enter your email" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-phone"></i> Phone Number</label>
+                        <input type="tel" name="phone" placeholder="Enter phone number">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-map-marker-alt"></i> Address</label>
+                        <input type="text" name="address" placeholder="Enter your address">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Information -->
+            <div class="form-section">
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-lock"></i> Password</label>
+                        <div class="password-input">
+                            <input type="password" name="password" id="password" placeholder="Create password" required>
+                            <button type="button" class="toggle-password" onclick="togglePassword('password')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="password-strength" id="passwordStrength">
+                            <div class="strength-bar"></div>
+
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-lock"></i> Confirm Password</label>
+                        <div class="password-input">
+                            <input type="password" name="confirm_password" id="confirmPassword" placeholder="Confirm password" required>
+                            <button type="button" class="toggle-password" onclick="togglePassword('confirmPassword')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terms & Conditions -->
+            <div class="terms-section">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="terms" required>
+                    <span class="checkmark"></span>
+                    I agree to the <a href="#" onclick="showTerms()">Terms & Conditions</a> and <a href="#" onclick="showPrivacy()">Privacy Policy</a>
+                </label>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="submit-btn" id="submitBtn">
+                <i class="fas fa-user-plus"></i> Create Account
+            </button>
+
+
+        </form>
+
+
+
+
+        <!-- =================================================
+             DIVIDER
+        ================================================== -->
+
+
+
+    </div>
+
+</div>
+
+
+
+        {% if otp %}
+<div id="otp-overlay" style="display:flex;">
+    <div class="otp-box">
+        {% include "homepage/verify_otp.html" %}
+    </div>
+</div>
+{% endif %}
+
+
+<script>
+
+
+
+</script>
+
+
+</body>
+</html>
+

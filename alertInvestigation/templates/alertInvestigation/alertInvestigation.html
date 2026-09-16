@@ -1,0 +1,523 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>Alert Investigation - Fraud Detection System</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'alertInvestigation/css/alertInvestigation.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chatbot.css' %}">
+</head>
+<body>
+
+    <!-- TOPBAR -->
+    {% include 'components/topbar.html' %}
+
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        {% include 'components/sidebar.html' %}
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <div class="page-header">
+                <div>
+                    <h1><i class="fas fa-search"></i> Alert Investigation</h1>
+                    <p>Investigate and manage fraud alerts</p>
+                </div>
+
+            </div>
+
+
+
+
+            <!-- STATS CARDS -->
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-icon purple">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="totalAlerts">{{ alert_stats.total }}</span>
+                        <span class="stat-label">Total Alerts</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon red">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="criticalAlerts">{{ alert_stats.critical }}</span>
+                        <span class="stat-label">Critical</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon yellow">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="openAlerts">{{ alert_stats.open }}</span>
+                        <span class="stat-label">Open</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <i class="fas fa-spinner"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="investigatingAlerts">{{ alert_stats.investigating }}</span>
+                        <span class="stat-label">Investigating</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="resolvedAlerts">{{ alert_stats.resolved }}</span>
+                        <span class="stat-label">Resolved</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">
+                        <i class="fas fa-arrow-up"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="resolutionRate">{{ alert_stats.resolution_rate }}%</span>
+                        <span class="stat-label">Resolution Rate</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CHARTS -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-pie"></i> Alert Severity Distribution</h3>
+                        <span class="chart-badge">Donut</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="severityChart" class="chart-container"></div>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-bar"></i> Alert Status Distribution</h3>
+                        <span class="chart-badge">Bar</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="statusChart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+
+
+        </main>
+    </div>
+
+    <!-- DETAIL MODAL -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3><i class="fas fa-info-circle"></i> Alert Details</h3>
+                <button class="modal-close" onclick="closeDetailModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="detailBody">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+    </div>
+
+    {% include 'components/chatbot.html' %}
+
+<script src="{% static 'js/chatbot.js' %}"></script>
+
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    {{ severity_data|json_script:"severity-data" }}
+    {{ status_data|json_script:"status-data" }}
+
+<script>
+
+/* =========================================
+   GLOBAL DATA
+========================================= */
+
+let filteredData = [];
+
+
+/* =========================================
+   LOAD DATA FROM DJANGO
+========================================= */
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const severityElement =
+        document.getElementById("severity-data");
+
+    if (!severityElement) {
+        console.error("severity-data element not found");
+        return;
+    }
+
+    try {
+
+        filteredData = JSON.parse(
+            severityElement.textContent
+        );
+
+        console.log("Severity Data:", filteredData);
+
+        updateSeverityChart();
+
+    } catch (error) {
+
+        console.error(
+            "Error parsing severity data:",
+            error
+        );
+    }
+
+});
+
+
+/* =========================================
+   UPDATE CHARTS
+========================================= */
+
+function updateCharts() {
+
+    updateSeverityChart();
+
+    if (typeof updateStatusChart === "function") {
+        updateStatusChart();
+    }
+
+}
+
+
+/* =========================================
+   SEVERITY CHART
+========================================= */
+
+function updateSeverityChart() {
+
+    console.log(
+        "Updating severity chart:",
+        filteredData
+    );
+
+
+    const severityCounts = {
+        critical: 0,
+        high: 0,
+        medium: 0,
+        low: 0
+    };
+
+
+    filteredData.forEach(transaction => {
+
+        const severity = String(
+            transaction.severity || ""
+        )
+        .toLowerCase()
+        .trim();
+
+
+        if (severityCounts[severity] !== undefined) {
+            severityCounts[severity]++;
+        }
+
+    });
+
+
+    console.log(
+        "Severity Counts:",
+        severityCounts
+    );
+
+
+    const severityKeys = [
+        "critical",
+        "high",
+        "medium",
+        "low"
+    ];
+
+
+    const severityLabels = [
+        "Critical",
+        "High",
+        "Medium",
+        "Low"
+    ];
+
+
+    const severityColors = [
+        "#FF6B6B",
+        "#FF8A8A",
+        "#FFB432",
+        "#00D4AA"
+    ];
+
+
+    const values = severityKeys.map(
+        key => severityCounts[key]
+    );
+
+
+    const trace = {
+
+        values: values,
+
+        labels: severityLabels,
+
+        type: "pie",
+
+        hole: 0.5,
+
+        marker: {
+            colors: severityColors
+        },
+
+        textinfo: "label+percent",
+
+        textposition: "inside",
+
+        textfont: {
+            color: "white",
+            size: 12
+        },
+
+        hovertemplate:
+            "<b>%{label}</b>" +
+            "<br>Count: %{value}" +
+            "<br>Percentage: %{percent}" +
+            "<extra></extra>"
+
+    };
+
+
+    const layout = {
+
+        template: "plotly_dark",
+
+        margin: {
+            l: 20,
+            r: 20,
+            t: 20,
+            b: 20
+        },
+
+        paper_bgcolor: "rgba(0,0,0,0)",
+
+        plot_bgcolor: "rgba(0,0,0,0)",
+
+        showlegend: true,
+
+        legend: {
+            orientation: "h",
+            y: -0.1,
+            font: {
+                color: "#B8B8D0"
+            }
+        },
+
+        annotations: [{
+            font: {
+                size: 14,
+                color: "white"
+            },
+
+            showarrow: false,
+
+            text:
+                `Total<br>${filteredData.length}`
+        }]
+
+    };
+
+
+    Plotly.newPlot(
+        "severityChart",
+        [trace],
+        layout,
+        {
+            responsive: true,
+            displayModeBar: false
+        }
+    );
+
+}
+
+
+    let statusData = [];
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const statusElement =
+        document.getElementById("status-data");
+
+    if (!statusElement) {
+        console.error("status-data element not found");
+        return;
+    }
+
+    try {
+
+        statusData = JSON.parse(
+            statusElement.textContent
+        );
+
+        console.log("Status Data:", statusData);
+
+        updateStatusChart();
+
+    } catch (error) {
+
+        console.error(
+            "Error parsing status data:",
+            error
+        );
+
+    }
+
+});
+
+
+function updateStatusChart() {
+
+    const statusCounts = {
+        open: 0,
+        investigating: 0,
+        confirmed: 0,
+        false_positive: 0,
+        resolved: 0
+    };
+
+
+    statusData.forEach(transaction => {
+
+        const status = String(
+            transaction.status || ""
+        )
+        .toLowerCase()
+        .trim();
+
+        if (statusCounts[status] !== undefined) {
+            statusCounts[status]++;
+        }
+
+    });
+
+
+    console.log(
+        "Status Counts:",
+        statusCounts
+    );
+
+
+    const labels = [
+        "Open",
+        "Investigating",
+        "Confirmed",
+        "False Positive",
+        "Resolved"
+    ];
+
+    const values = [
+        statusCounts.open,
+        statusCounts.investigating,
+        statusCounts.confirmed,
+        statusCounts.false_positive,
+        statusCounts.resolved
+    ];
+
+
+    const trace = {
+
+        x: labels,
+
+        y: values,
+
+        type: "bar",
+
+        marker: {
+            color: [
+                "#FFB432",
+                "#3296FF",
+                "#FF6B6B",
+                "#00D4AA",
+                "#7A7A9A"
+            ],
+            opacity: 0.8
+        },
+
+        text: values,
+
+        textposition: "outside",
+
+        textfont: {
+            color: "white"
+        },
+
+        hovertemplate:
+            "<b>%{x}</b>" +
+            "<br>Count: %{y}" +
+            "<extra></extra>"
+    };
+
+
+    const layout = {
+
+        template: "plotly_dark",
+
+        margin: {
+            l: 50,
+            r: 20,
+            t: 20,
+            b: 70
+        },
+
+        paper_bgcolor: "rgba(0,0,0,0)",
+
+        plot_bgcolor: "rgba(0,0,0,0)",
+
+        xaxis: {
+            gridcolor: "rgba(255,255,255,0.05)",
+            tickfont: {
+                color: "#B8B8D0"
+            }
+        },
+
+        yaxis: {
+            gridcolor: "rgba(255,255,255,0.05)",
+            tickfont: {
+                color: "#B8B8D0"
+            },
+            title: "Number of Alerts",
+            rangemode: "tozero"
+        }
+
+    };
+
+
+    Plotly.newPlot(
+        "statusChart",
+        [trace],
+        layout,
+        {
+            responsive: true,
+            displayModeBar: false
+        }
+    );
+}
+</script>
+</body>
+</html>

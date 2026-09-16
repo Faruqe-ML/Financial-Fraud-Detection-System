@@ -1,0 +1,1030 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>Geographic Analysis - Fraud Detection System</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Plotly -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+
+    <link rel="stylesheet" href="{% static 'geographicAnalysis/css/geographicAnalysis.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chatbot.css' %}">
+</head>
+<body>
+
+    <!-- TOPBAR -->
+    {% include 'components/topbar.html' %}
+
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        <{% include 'components/sidebar.html' %}
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <div class="page-header">
+                <div>
+                    <h1><i class="fas fa-globe"></i> Geographic Analysis</h1>
+                    <p>Analyze fraud patterns across different geographic locations</p>
+                </div>
+
+            </div>
+
+
+
+            <!-- STATS CARDS -->
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-icon purple">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="totalLocations">{{ gregraphicData.total_locations }}</span>
+                        <span class="stat-label">Total Locations</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="safeLocations">{{ gregraphicData.safe_locations }}</span>
+                        <span class="stat-label">Safe Locations</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon red">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="fraudLocations">{{ gregraphicData.fraud_locations }}</span>
+                        <span class="stat-label">Fraud Locations</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon yellow">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="suspiciousLocations">{{ gregraphicData.suspicious_locations }}</span>
+                        <span class="stat-label">Suspicious</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <i class="fas fa-arrow-right-arrow-left"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="totalTransactions">{{ gregraphicData.total_transactions }}</span>
+                        <span class="stat-label">Total Transactions</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">
+                        <i class="fas fa-percent"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="fraudRate">{{ gregraphicData.fraud_rate }}%</span>
+                        <span class="stat-label">Fraud Rate</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CHARTS GRID -->
+            <div class="charts-grid">
+                <!-- Chart 1: World Map (Choropleth) -->
+                <div class="chart-card full-width">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-map"></i> Fraud Distribution Map</h3>
+                        <span class="chart-badge">Choropleth Map</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="worldMapChart" class="chart-container" style="height: 450px;"></div>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Top Fraud Countries -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-bar"></i> Top Fraud Countries</h3>
+                        <span class="chart-badge">Bar Chart</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="topCountriesChart" class="chart-container"></div>
+                    </div>
+                </div>
+
+                <!-- Chart 3: Fraud by Region -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-pie"></i> Fraud by Region</h3>
+                        <span class="chart-badge">Pie Chart</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="regionChart" class="chart-container"></div>
+                    </div>
+                </div>
+
+                <!-- Chart 4: Transaction Heatmap by Location -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-th"></i> Location Activity Heatmap</h3>
+                        <span class="chart-badge">Heatmap</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="locationHeatmapChart" class="chart-container"></div>
+                    </div>
+                </div>
+
+                <!-- Chart 5: Fraud vs Safe by Country -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-doughnut"></i> Fraud vs Safe by Country</h3>
+                        <span class="chart-badge">Doughnut</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="countryComparisonChart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+
+
+        </main>
+    </div>
+{% include 'components/chatbot.html' %}
+
+<script src="{% static 'js/chatbot.js' %}"></script>
+    <script src="{% static 'js/geographic.js' %}"></script>
+    {{ world_map_data|json_script:"world-map-data" }}
+    {{ top_countries_data|json_script:"top-countries-data" }}
+    {{ region_data|json_script:"region-data" }}
+    {{ location_heatmap_data|json_script:"location-heatmap-data" }}
+    {{ country_comparison_data|json_script:"country-comparison-data" }}
+
+<script>
+    function loadWorldMapChart() {
+
+    const element =
+        document.getElementById("world-map-data");
+
+    if (!element) {
+        console.error(
+            "world-map-data element not found"
+        );
+        return;
+    }
+
+    try {
+
+        const data =
+            JSON.parse(element.textContent);
+
+        console.log(
+            "WORLD MAP DATA:",
+            data
+        );
+
+        if (!Array.isArray(data)) {
+            console.error(
+                "Expected array:",
+                data
+            );
+            return;
+        }
+
+        updateWorldMap(data);
+
+    } catch (error) {
+
+        console.error(
+            "WORLD MAP JSON ERROR:",
+            error
+        );
+    }
+}
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+        loadWorldMapChart();
+    }
+);
+
+    function updateWorldMap(data) {
+
+    const countryData = data.map(d => ({
+        country: d.location || "Unknown",
+        fraud_rate: Number(d.fraud_rate || 0),
+        total_tx: Number(d.total_tx || 0),
+        fraud_tx: Number(d.fraud_tx || 0)
+    }));
+
+    const countryCodes = {
+        "US": "USA",
+        "UK": "GBR",
+        "IN": "IND",
+        "SG": "SGP",
+        "AU": "AUS",
+        "RU": "RUS",
+        "CN": "CHN",
+        "NG": "NGA",
+        "BR": "BRA",
+        "JP": "JPN",
+        "DE": "DEU",
+        "FR": "FRA",
+        "IT": "ITA",
+        "ES": "ESP",
+        "CA": "CAN",
+        "MX": "MEX"
+    };
+
+    const locations = countryData.map(
+        d => countryCodes[d.country] || d.country
+    );
+
+    const values = countryData.map(
+        d => d.fraud_rate
+    );
+
+    const trace = {
+
+        type: "choropleth",
+
+        locationmode: "ISO-3",
+
+        locations: locations,
+
+        z: values,
+
+        text: countryData.map(d =>
+    `<b>Country: ${d.country}</b><br>` +
+    `Fraud Rate: ${d.fraud_rate.toFixed(2)}%<br>` +
+    `Total Transactions: ${d.total_tx.toLocaleString()}<br>` +
+    `Fraud Transactions: ${d.fraud_tx.toLocaleString()}`
+),
+
+        hoverinfo: "text",
+
+        colorscale: [
+            [0, "#00D4AA"],
+            [0.33, "#FFB432"],
+            [0.66, "#FF8A8A"],
+            [1, "#FF6B6B"]
+        ],
+
+        colorbar: {
+            title: "Fraud Rate (%)",
+            titlefont: {
+                color: "#B8B8D0"
+            },
+            tickfont: {
+                color: "#B8B8D0"
+            }
+        },
+
+        // WHITE COUNTRY OUTLINE
+        marker: {
+            line: {
+                color: "#FFFFFF",
+                width: 1
+            }
+        }
+    };
+
+    const layout = {
+
+        template: "plotly_dark",
+
+        margin: {
+            l: 0,
+            r: 0,
+            t: 20,
+            b: 0
+        },
+
+        paper_bgcolor: "rgba(0,0,0,0)",
+
+        plot_bgcolor: "rgba(0,0,0,0)",
+
+        geo: {
+
+            showframe: false,
+
+            showcoastlines: true,
+
+            // WHITE COASTLINE
+            coastlinecolor: "#FFFFFF",
+            coastlinewidth: 1,
+
+            // WHITE COUNTRY BORDERS
+            showcountries: true,
+            countrycolor: "#FFFFFF",
+            countrywidth: 1,
+
+            projection: {
+                type: "equirectangular"
+            },
+
+            bgcolor: "rgba(0,0,0,0)"
+        }
+    };
+
+    Plotly.newPlot(
+        "worldMapChart",
+        [trace],
+        layout,
+        {
+            responsive: true,
+            displayModeBar: false
+        }
+    );
+}
+
+    function loadTopCountriesChart() {
+
+    const element =
+        document.getElementById("top-countries-data");
+
+    if (!element) {
+        console.error(
+            "top-countries-data element not found"
+        );
+        return;
+    }
+
+    try {
+
+        const data =
+            JSON.parse(element.textContent);
+
+        console.log(
+            "TOP COUNTRIES DATA:",
+            data
+        );
+
+        if (!Array.isArray(data)) {
+            console.error(
+                "Expected array:",
+                data
+            );
+            return;
+        }
+
+        updateTopCountriesChart(data);
+
+    } catch (error) {
+
+        console.error(
+            "TOP COUNTRIES JSON ERROR:",
+            error
+        );
+    }
+}
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+        loadTopCountriesChart();
+    }
+);
+
+    function updateTopCountriesChart(data) {
+
+    const sorted = [...data]
+        .sort(
+            (a, b) =>
+                (Number(b.fraud_rate) || 0) -
+                (Number(a.fraud_rate) || 0)
+        )
+        .slice(0, 15);
+
+    const trace = {
+
+        x: sorted.map(
+            d => d.location || "Unknown"
+        ),
+
+        y: sorted.map(
+            d => Number(d.fraud_rate || 0)
+        ),
+
+        type: "bar",
+
+        marker: {
+            color: sorted.map(d => {
+
+                const rate =
+                    Number(d.fraud_rate || 0);
+
+                if (rate > 20)
+                    return "#FF6B6B";
+
+                if (rate > 10)
+                    return "#FF8A8A";
+
+                if (rate > 5)
+                    return "#FFB432";
+
+                return "#00D4AA";
+
+            }),
+
+            opacity: 0.8
+        },
+
+        text: sorted.map(
+            d =>
+                `${Number(
+                    d.fraud_rate || 0
+                ).toFixed(2)}%`
+        ),
+
+        textposition: "outside",
+
+        textfont: {
+            color: "white"
+        },
+
+        customdata: sorted.map(d => [
+            Number(d.total_tx || 0),
+            Number(d.fraud_tx || 0)
+        ]),
+
+        hovertemplate:
+            "<b>%{x}</b><br>" +
+            "Fraud Rate: %{y:.2f}%<br>" +
+            "Total Transactions: %{customdata[0]:,}<br>" +
+            "Fraud Transactions: %{customdata[1]:,}" +
+            "<extra></extra>"
+    };
+
+    const layout = {
+
+        template: "plotly_dark",
+
+        margin: {
+            l: 60,
+            r: 40,
+            t: 20,
+            b: 70
+        },
+
+        paper_bgcolor:
+            "rgba(0,0,0,0)",
+
+        plot_bgcolor:
+            "rgba(0,0,0,0)",
+
+        xaxis: {
+
+            gridcolor:
+                "rgba(255,255,255,0.05)",
+
+            tickfont: {
+                color: "#B8B8D0"
+            },
+
+            tickangle: -20,
+
+            title: "Country"
+        },
+
+        yaxis: {
+
+            gridcolor:
+                "rgba(255,255,255,0.05)",
+
+            tickfont: {
+                color: "#B8B8D0"
+            },
+
+            title: "Fraud Rate (%)",
+
+            titlefont: {
+                color: "#B8B8D0"
+            },
+
+            ticksuffix: "%",
+
+            rangemode: "tozero"
+        }
+    };
+
+    Plotly.newPlot(
+        "topCountriesChart",
+        [trace],
+        layout,
+        {
+            responsive: true,
+            displayModeBar: false
+        }
+    );
+}
+
+
+    function loadRegionChart() {
+
+    const element =
+        document.getElementById("region-data");
+
+    if (!element) {
+        console.error(
+            "region-data element not found"
+        );
+        return;
+    }
+
+    try {
+
+        const data =
+            JSON.parse(element.textContent);
+
+        console.log(
+            "REGION DATA:",
+            data
+        );
+
+        if (!Array.isArray(data)) {
+            console.error(
+                "Expected array:",
+                data
+            );
+            return;
+        }
+
+        updateRegionChart(data);
+
+    } catch (error) {
+
+        console.error(
+            "REGION JSON ERROR:",
+            error
+        );
+    }
+}
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+        loadRegionChart();
+    }
+);
+
+    function updateRegionChart(data) {
+
+    const regions = {};
+
+    const regionColors = {
+
+        "North America": "#3296FF",
+
+        "Europe": "#6C3CE1",
+
+        "Asia": "#FFB432",
+
+        "Africa": "#FF6B6B",
+
+        "South America": "#00D4AA",
+
+        "Oceania": "#FF8C32",
+
+        "Other": "#7A7A9A"
+    };
+
+    data.forEach(d => {
+
+        const region =
+            d.region || "Other";
+
+        const fraudTx =
+            Number(d.fraud_tx || 0);
+
+        regions[region] =
+            (regions[region] || 0) +
+            fraudTx;
+    });
+
+    const labels =
+        Object.keys(regions);
+
+    const values =
+        Object.values(regions);
+
+    const trace = {
+
+        values: values,
+
+        labels: labels,
+
+        type: "pie",
+
+        marker: {
+            colors: labels.map(
+                region =>
+                    regionColors[region] ||
+                    "#7A7A9A"
+            )
+        },
+
+        textinfo: "label+percent",
+
+        textposition: "inside",
+
+        textfont: {
+            color: "white",
+            size: 12
+        },
+
+        hovertemplate:
+            "<b>%{label}</b><br>" +
+            "Fraud Transactions: %{value:,}<br>" +
+            "Percentage: %{percent}" +
+            "<extra></extra>"
+    };
+
+    const layout = {
+
+        template: "plotly_dark",
+
+        margin: {
+            l: 20,
+            r: 20,
+            t: 20,
+            b: 20
+        },
+
+        paper_bgcolor:
+            "rgba(0,0,0,0)",
+
+        plot_bgcolor:
+            "rgba(0,0,0,0)",
+
+        showlegend: true,
+
+        legend: {
+            orientation: "h",
+            y: -0.1,
+            font: {
+                color: "#B8B8D0"
+            }
+        }
+    };
+
+    Plotly.newPlot(
+        "regionChart",
+        [trace],
+        layout,
+        {
+            responsive: true,
+            displayModeBar: false
+        }
+    );
+}
+
+    function loadLocationHeatmap() {
+
+    const element =
+        document.getElementById("location-heatmap-data");
+
+    if (!element) {
+        console.error(
+            "location-heatmap-data element not found"
+        );
+        return;
+    }
+
+    try {
+
+        const data =
+            JSON.parse(element.textContent);
+
+        console.log(
+            "LOCATION HEATMAP DATA:",
+            data
+        );
+
+        if (!Array.isArray(data)) {
+            console.error(
+                "Expected array:",
+                data
+            );
+            return;
+        }
+
+        updateLocationHeatmap(data);
+
+    } catch (error) {
+
+        console.error(
+            "LOCATION HEATMAP JSON ERROR:",
+            error
+        );
+    }
+}
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+        loadLocationHeatmap();
+    }
+);
+
+    function updateLocationHeatmap(data) {
+
+    // Top 15 locations
+    const locations = data
+        .slice()
+        .sort(
+            (a, b) =>
+                Number(b.total_tx || 0) -
+                Number(a.total_tx || 0)
+        )
+        .slice(0, 15)
+        .map(d => d.location || "Unknown");
+
+    const metrics = [
+        "Total Tx",
+        "Fraud Tx",
+        "Fraud Rate"
+    ];
+
+    const selectedData = data.filter(
+        d => locations.includes(d.location)
+    );
+
+    const zData = locations.map(location => {
+
+        const d = selectedData.find(
+            item => item.location === location
+        );
+
+        if (!d) {
+            return [0, 0, 0];
+        }
+
+        return [
+            Number(d.total_tx || 0),
+            Number(d.fraud_tx || 0),
+            Number(d.fraud_rate || 0)
+        ];
+    });
+
+    const trace = {
+
+        z: zData,
+
+        x: metrics,
+
+        y: locations,
+
+        type: "heatmap",
+
+        colorscale: [
+            [0, "#0A0A1A"],
+            [0.33, "#6C3CE1"],
+            [0.66, "#FFB432"],
+            [1, "#FF6B6B"]
+        ],
+
+        text: zData.map(row => [
+            row[0].toLocaleString(),
+            row[1].toLocaleString(),
+            row[2].toFixed(2) + "%"
+        ]),
+
+        texttemplate: "%{text}",
+
+        textfont: {
+            color: "white"
+        },
+
+        hovertemplate:
+            "<b>%{y}</b><br>" +
+            "%{x}: %{text}" +
+            "<extra></extra>"
+    };
+
+    const layout = {
+
+        template: "plotly_dark",
+
+        margin: {
+            l: 100,
+            r: 20,
+            t: 20,
+            b: 60
+        },
+
+        paper_bgcolor:
+            "rgba(0,0,0,0)",
+
+        plot_bgcolor:
+            "rgba(0,0,0,0)",
+
+        xaxis: {
+
+            tickfont: {
+                color: "#B8B8D0"
+            }
+        },
+
+        yaxis: {
+
+            tickfont: {
+                color: "#B8B8D0"
+            },
+
+            autorange: "reversed"
+        }
+    };
+
+    Plotly.newPlot(
+        "locationHeatmapChart",
+        [trace],
+        layout,
+        {
+            responsive: true,
+            displayModeBar: false
+        }
+    );
+}
+
+    function loadCountryComparisonChart() {
+
+    const element =
+        document.getElementById("country-comparison-data");
+
+    if (!element) {
+        console.error(
+            "country-comparison-data element not found"
+        );
+        return;
+    }
+
+    try {
+
+        const data =
+            JSON.parse(element.textContent);
+
+        console.log(
+            "COUNTRY COMPARISON DATA:",
+            data
+        );
+
+        if (!Array.isArray(data)) {
+            console.error(
+                "Expected array:",
+                data
+            );
+            return;
+        }
+
+        updateCountryComparisonChart(data);
+
+    } catch (error) {
+
+        console.error(
+            "COUNTRY COMPARISON JSON ERROR:",
+            error
+        );
+    }
+}
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+        loadCountryComparisonChart();
+    }
+);
+
+    function updateCountryComparisonChart(data) {
+
+    const sorted = [...data]
+        .sort(
+            (a, b) =>
+                Number(b.total_tx || 0) -
+                Number(a.total_tx || 0)
+        )
+        .slice(0, 10);
+
+
+    const totalFraud = sorted.reduce(
+        (sum, d) =>
+            sum + Number(d.fraud_tx || 0),
+        0
+    );
+
+
+    const totalSafe = sorted.reduce(
+        (sum, d) =>
+            sum + Number(d.safe_tx || 0),
+        0
+    );
+
+
+    const trace = {
+
+        values: [
+            totalFraud,
+            totalSafe
+        ],
+
+        labels: [
+            "Fraudulent",
+            "Safe"
+        ],
+
+        type: "pie",
+
+        hole: 0.5,
+
+        marker: {
+            colors: [
+                "#FF6B6B",
+                "#00D4AA"
+            ]
+        },
+
+        textinfo: "label+percent",
+
+        textposition: "inside",
+
+        textfont: {
+            color: "white",
+            size: 14
+        },
+
+        hovertemplate:
+            "<b>%{label}</b><br>" +
+            "Transactions: %{value:,}<br>" +
+            "Percentage: %{percent}" +
+            "<extra></extra>"
+    };
+
+
+    const layout = {
+
+        template: "plotly_dark",
+
+        margin: {
+            l: 20,
+            r: 20,
+            t: 20,
+            b: 20
+        },
+
+        paper_bgcolor:
+            "rgba(0,0,0,0)",
+
+        plot_bgcolor:
+            "rgba(0,0,0,0)",
+
+        showlegend: true,
+
+        legend: {
+            orientation: "h",
+            y: -0.1,
+            font: {
+                color: "#B8B8D0"
+            }
+        },
+
+        annotations: [{
+            font: {
+                size: 14,
+                color: "white"
+            },
+
+            showarrow: false,
+
+            text:
+                "Top 10<br>" +
+                "Countries"
+        }]
+    };
+
+
+    Plotly.newPlot(
+        "countryComparisonChart",
+        [trace],
+        layout,
+        {
+            responsive: true,
+            displayModeBar: false
+        }
+    );
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{% load static %}
+
+<div class="box">
+    <h2>Verify OTP</h2>
+
+    <form action="{% url 'homepage:verify_otp2' %}" method="POST">
+        {% csrf_token %}
+
+        <input type="text" name="otp" placeholder="Enter OTP" maxlength="6" required>
+
+        <button type="submit">Verify</button>
+    </form>
+
+    {% if error %}
+        <div class="error">{{ error }}</div>
+    {% endif %}
+
+    <div class="note">
+        OTP has been sent to your email
+    </div>
+</div>

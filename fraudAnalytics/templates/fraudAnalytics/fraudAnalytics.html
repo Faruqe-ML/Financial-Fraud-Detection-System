@@ -1,0 +1,2581 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>Fraud Analytics - Fraud Detection System</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Plotly -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+
+    <link rel="stylesheet" href="{% static 'fraudAnalytics/css/fraudAnalytics.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chatbot.css' %}">
+</head>
+<body>
+
+    <!-- TOPBAR -->
+    {% include 'components/topbar.html' %}
+
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        {% include 'components/sidebar.html' %}
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <div class="page-header">
+                <div>
+                    <h1><i class="fas fa-exclamation-triangle"></i> Fraud Analytics</h1>
+                    <p>Comprehensive analysis of fraud cases, patterns, and trends</p>
+                </div>
+
+            </div>
+
+
+            <!-- STATS CARDS -->
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-icon red">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="totalCases">{{ fraud_count }}</span>
+                        <span class="stat-label">Total Fraud Cases</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="confirmedCases">{{ confirmed_cases }}</span>
+                        <span class="stat-label">Confirmed</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon yellow">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="underReview">{{ under_review_cases }}</span>
+                        <span class="stat-label">Under Review</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="falsePositives">{{ false_positive_cases }}</span>
+                        <span class="stat-label">False Positives</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="totalFraudAmount">{{ fraud_amount }}</span>
+                        <span class="stat-label">Total Fraud Amount</span>
+                    </div>
+                </div>
+
+
+            </div>
+
+            <!-- CHARTS GRID - 5 Different Charts -->
+            <div class="charts-grid">
+                <!-- Chart 1: Funnel Chart - Fraud Case Funnel -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-funnel-dollar"></i> Fraud Case Funnel</h3>
+                        <span class="chart-badge">Funnel Chart</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="funnelChart" class="chart-container"></div>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Treemap - Fraud Type Distribution -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-tree"></i> Fraud Type Distribution</h3>
+                        <span class="chart-badge">Treemap</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="treemapChart" class="chart-container"></div>
+                    </div>
+                </div>
+
+                <!-- Chart 3: Sankey Diagram - Fraud Flow -->
+                <div class="chart-card full-width">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-flow"></i> Fraud Case Flow</h3>
+                        <span class="chart-badge">Sankey Diagram</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="sankeyChart" class="chart-container"></div>
+                    </div>
+                </div>
+
+                <!-- Chart 4: Violin Plot - Fraud Amount Distribution -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-violin"></i> Fraud Amount Distribution</h3>
+                        <span class="chart-badge">Violin Plot</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="violinChart" class="chart-container"></div>
+                    </div>
+                </div>
+
+                <!-- Chart 5: Sunburst Chart - Fraud Type Hierarchy -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-sun"></i> Fraud Type Hierarchy</h3>
+                        <span class="chart-badge">Sunburst</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="sunburstChart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FRAUD CASES TABLE -->
+            <div class="table-container">
+                <div class="table-header">
+                    <span class="table-title"><i class="fas fa-list"></i> Recent Fraud Cases</span>
+                    <span class="table-count" id="rowCount">Showing 0 records</span>
+                </div>
+                <div class="table-wrapper">
+                    <table class="fraud-table" id="fraudTable">
+                        <thead>
+                            <tr>
+                                <th>Case ID</th>
+                                <th>Transaction ID</th>
+                                <th>Customer ID</th>
+                                <th>Amount</th>
+                                <th>Fraud Type</th>
+                                <th>Status</th>
+                                <th>Detection Time</th>
+                                <th>Investigator</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Data populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination">
+                    <div class="pagination-info">
+                        <span id="pageInfo">Showing 1-10 of 0</span>
+                        <select id="pageSize" onchange="changePageSize()">
+                            <option value="10">10 per page</option>
+                            <option value="25">25 per page</option>
+                            <option value="50">50 per page</option>
+                        </select>
+                    </div>
+                    <div class="pagination-buttons">
+                        <button onclick="prevPage()" id="prevBtn"><i class="fas fa-chevron-left"></i></button>
+                        <span id="pageNumbers"></span>
+                        <button onclick="nextPage()" id="nextBtn"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+{% include 'components/chatbot.html' %}
+
+<script src="{% static 'js/chatbot.js' %}"></script>
+   {{ funnel_data|json_script:"funnel-chart-data" }}
+    {{ treemap_data|json_script:"treemap-chart-data" }}
+    {{ sankey_data|json_script:"sankey-chart-data" }}
+    {{ violin_data|json_script:"violin-chart-data" }}
+    {{ sunburst_data|json_script:"sunburst-chart-data" }}
+    {{ fraud_cases.cases|json_script:"fraud-cases-data" }}
+
+<script>
+    function updateFunnelChart(data) {
+
+    // =========================================
+    // VALIDATION
+    // =========================================
+
+    if (!data) {
+
+        console.error(
+            "Funnel data is missing"
+        );
+
+        return;
+    }
+
+
+    if (!Array.isArray(data.stages)) {
+
+        console.error(
+            "Invalid funnel stages:",
+            data.stages
+        );
+
+        return;
+    }
+
+
+    if (!Array.isArray(data.values)) {
+
+        console.error(
+            "Invalid funnel values:",
+            data.values
+        );
+
+        return;
+    }
+
+
+    if (data.stages.length === 0) {
+
+        console.error(
+            "No funnel data available"
+        );
+
+        return;
+    }
+
+
+    // =========================================
+    // CONVERT VALUES TO NUMBERS
+    // =========================================
+
+    const values = data.values.map(
+        value => Number(value) || 0
+    );
+
+
+    // =========================================
+    // CALCULATE PERCENTAGES
+    // =========================================
+
+    const total = values[0];
+
+    const percentages = values.map(
+        value => {
+
+            if (total === 0) {
+                return 0;
+            }
+
+            return (value / total) * 100;
+        }
+    );
+
+
+    // =========================================
+    // COLORS
+    // =========================================
+
+    const colors = [
+        "#6C3CE1",
+        "#8B6FE8",
+        "#FFB432",
+        "#FF6B6B"
+    ];
+
+
+    // =========================================
+    // FUNNEL TRACE
+    // =========================================
+
+    const trace = {
+
+        type: "funnel",
+
+        y: data.stages,
+
+        x: values,
+
+        text: values.map(
+            (value, index) => {
+
+                return (
+                    value.toLocaleString() +
+                    " (" +
+                    percentages[index].toFixed(1) +
+                    "%)"
+                );
+            }
+        ),
+
+        textposition: "inside",
+
+        textfont: {
+
+            color: "white",
+
+            size: 14
+        },
+
+        marker: {
+
+            color: colors,
+
+            line: {
+
+                color:
+                    "rgba(255,255,255,0.08)",
+
+                width: 1
+            }
+        },
+
+        connector: {
+
+            line: {
+
+                color:
+                    "rgba(255,255,255,0.15)",
+
+                width: 1
+            }
+        },
+
+        hovertemplate:
+
+            "<b>%{y}</b>" +
+
+            "<br>Cases: %{x:,}" +
+
+            "<br>%{percentInitial:.2f}% of all transactions" +
+
+            "<extra></extra>"
+    };
+
+
+    // =========================================
+    // LAYOUT
+    // =========================================
+
+    const layout = {
+
+        template: "plotly_dark",
+
+        margin: {
+
+            l: 210,
+
+            r: 70,
+
+            t: 20,
+
+            b: 50
+        },
+
+        paper_bgcolor:
+            "rgba(0,0,0,0)",
+
+        plot_bgcolor:
+            "rgba(0,0,0,0)",
+
+        funnelmode: "stack",
+
+        funnelgap: 0.08,
+
+        showlegend: false,
+
+        xaxis: {
+
+            title: {
+
+                text:
+                    "Number of Transactions",
+
+                font: {
+
+                    color: "#7A7A9A",
+
+                    size: 13
+                }
+            },
+
+            tickfont: {
+
+                color: "#7A7A9A",
+
+                size: 11
+            },
+
+            gridcolor:
+                "rgba(255,255,255,0.05)"
+        },
+
+        yaxis: {
+
+            tickfont: {
+
+                color: "#B8B8D0",
+
+                size: 13
+            },
+
+            automargin: true
+        },
+
+        hoverlabel: {
+
+            bgcolor: "#15152B",
+
+            bordercolor: "#6C3CE1",
+
+            font: {
+
+                color: "white",
+
+                size: 13
+            }
+        }
+    };
+
+
+    // =========================================
+    // CREATE CHART
+    // =========================================
+
+    Plotly.newPlot(
+
+        "funnelChart",
+
+        [trace],
+
+        layout,
+
+        {
+
+            responsive: true,
+
+            displaylogo: false,
+
+            modeBarButtonsToRemove: [
+
+                "lasso2d",
+
+                "select2d"
+            ]
+        }
+    );
+}
+
+
+/* =========================================
+   LOAD DJANGO DATA
+========================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const funnelElement =
+            document.getElementById(
+                "funnel-chart-data"
+            );
+
+
+        if (!funnelElement) {
+
+            console.error(
+                "funnel-chart-data element NOT FOUND"
+            );
+
+            return;
+        }
+
+
+        try {
+
+            const funnelData =
+                JSON.parse(
+                    funnelElement.textContent
+                );
+
+
+            console.log(
+                "Parsed Funnel Data:",
+                funnelData
+            );
+
+
+            updateFunnelChart(
+                funnelData
+            );
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Error parsing funnel data:",
+                error
+            );
+        }
+
+    }
+);
+
+
+
+    function updateTreemapChart(data) {
+
+    console.log("FRAUD TREEMAP DATA:", data);
+
+    // =========================================
+    // VALIDATION
+    // =========================================
+
+    if (!Array.isArray(data)) {
+
+        console.error(
+            "Treemap data must be an array:",
+            data
+        );
+
+        return;
+    }
+
+    if (data.length === 0) {
+
+        console.error(
+            "No fraud treemap data available"
+        );
+
+        return;
+    }
+
+
+    // =========================================
+    // PREPARE DATA
+    // =========================================
+
+    const labels = data.map(
+        d => d.fraud_type
+    );
+
+    const counts = data.map(
+        d => Number(d.count) || 0
+    );
+
+    const amounts = data.map(
+        d => Number(d.total_amount) || 0
+    );
+
+
+    // =========================================
+    // DISPLAY AMOUNT
+    // =========================================
+
+    const amountText = amounts.map(
+        amount =>
+            "$" +
+            amount.toLocaleString(
+                undefined,
+                {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                }
+            )
+    );
+
+
+    // =========================================
+    // TREEMAP TRACE
+    // =========================================
+
+    const trace = {
+
+        type: "treemap",
+
+        labels: labels,
+
+        parents: labels.map(
+            () => ""
+        ),
+
+        values: counts,
+
+        text: amountText,
+
+        textinfo: "label+value+text",
+
+        textfont: {
+            color: "white",
+            size: 14
+        },
+
+        // Remove root/gray background
+        root: {
+            color: "rgba(0,0,0,0)"
+        },
+
+        marker: {
+
+            colors: counts,
+
+            colorscale: [
+
+                [0, "#6C3CE1"],
+
+                [0.5, "#8B6FE8"],
+
+                [1, "#FF6B6B"]
+
+            ],
+
+            showscale: false,
+
+            line: {
+
+                color:
+                    "rgba(255,255,255,0.08)",
+
+                width: 1
+            }
+        },
+
+        hovertemplate:
+
+            "<b>%{label}</b>" +
+
+            "<br>Fraud Cases: %{value:,}" +
+
+            "<br>Fraud Amount: %{text}" +
+
+            "<extra></extra>"
+    };
+
+
+    // =========================================
+    // LAYOUT
+    // =========================================
+
+    const layout = {
+
+        template: "plotly_dark",
+
+        margin: {
+            l: 10,
+            r: 10,
+            t: 10,
+            b: 10
+        },
+
+        // Completely transparent chart background
+        paper_bgcolor: "rgba(0,0,0,0)",
+
+        plot_bgcolor: "rgba(0,0,0,0)",
+
+        // Remove treemap path bar
+        uniformtext: {
+            minsize: 11,
+            mode: "hide"
+        },
+
+        // Remove hover gray appearance
+        hoverlabel: {
+            bgcolor: "#15152B",
+            bordercolor: "#6C3CE1",
+            font: {
+                color: "white",
+                size: 13
+            }
+        }
+    };
+
+
+    // =========================================
+    // CREATE TREEMAP
+    // =========================================
+
+    Plotly.newPlot(
+
+        "treemapChart",
+
+        [trace],
+
+        layout,
+
+        {
+            responsive: true,
+
+            displaylogo: false,
+
+            modeBarButtonsToRemove: [
+                "lasso2d",
+                "select2d"
+            ]
+        }
+    );
+}
+
+
+// =========================================
+// LOAD DATA
+// =========================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const treemapElement =
+            document.getElementById(
+                "treemap-chart-data"
+            );
+
+        if (!treemapElement) {
+
+            console.error(
+                "treemap-chart-data element NOT FOUND"
+            );
+
+            return;
+        }
+
+        try {
+
+            const treemapData =
+                JSON.parse(
+                    treemapElement.textContent
+                );
+
+            console.log(
+                "Parsed Treemap Data:",
+                treemapData
+            );
+
+            updateTreemapChart(
+                treemapData
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Error parsing treemap data:",
+                error
+            );
+        }
+    }
+);
+
+
+
+
+
+    function updateSankeyChart(data) {
+
+    console.log("FRAUD SANKEY DATA:", data);
+
+    // =========================================
+    // VALIDATION
+    // =========================================
+
+    if (!data || !Array.isArray(data.nodes)) {
+
+        console.error(
+            "Sankey nodes must be an array:",
+            data
+        );
+
+        return;
+    }
+
+    if (!Array.isArray(data.links)) {
+
+        console.error(
+            "Sankey links must be an array:",
+            data
+        );
+
+        return;
+    }
+
+    if (data.nodes.length === 0) {
+
+        console.error(
+            "No Sankey nodes available"
+        );
+
+        return;
+    }
+
+
+    // =========================================
+    // NODE COLORS
+    // =========================================
+
+    const nodeColors = data.nodes.map(node => {
+
+        const name =
+            String(node).toLowerCase();
+
+
+        // Fraudulent
+        if (
+            name.includes("fraud")
+        ) {
+            return "#FF6B6B";
+        }
+
+
+        // Safe
+        if (
+            name.includes("safe")
+        ) {
+            return "#00D4AA";
+        }
+
+
+        // New Device / Risk
+        if (
+            name.includes("new device")
+        ) {
+            return "#FFB432";
+        }
+
+
+        // Existing Device
+        if (
+            name.includes("existing")
+        ) {
+            return "#8B6FE8";
+        }
+
+
+        // Card Not Present
+        if (
+            name.includes("not present")
+        ) {
+            return "#FF8A8A";
+        }
+
+
+        // Default
+        return "#6C3CE1";
+    });
+
+
+    // =========================================
+    // LINK COLORS
+    // =========================================
+
+    const linkColors = data.links.map(link => {
+
+        const targetIndex =
+            Number(link.target);
+
+        const targetName =
+            String(
+                data.nodes[targetIndex] || ""
+            ).toLowerCase();
+
+
+        // Fraud flow
+        if (
+            targetName.includes("fraud")
+        ) {
+            return "rgba(255,107,107,0.45)";
+        }
+
+
+        // Safe flow
+        if (
+            targetName.includes("safe")
+        ) {
+            return "rgba(0,212,170,0.40)";
+        }
+
+
+        // New device / risk flow
+        if (
+            targetName.includes("new device")
+        ) {
+            return "rgba(255,180,50,0.40)";
+        }
+
+
+        // Default flow
+        return "rgba(108,60,225,0.28)";
+    });
+
+
+    // =========================================
+    // SANKEY TRACE
+    // =========================================
+
+    const trace = {
+
+        type: "sankey",
+
+        orientation: "h",
+
+        arrangement: "snap",
+
+
+        // =====================================
+        // NODES
+        // =====================================
+
+        node: {
+
+            label: data.nodes,
+
+            color: nodeColors,
+
+            pad: 25,
+
+            thickness: 24,
+
+            line: {
+
+                color:
+                    "rgba(255,255,255,0.12)",
+
+                width: 1
+            },
+
+            hovertemplate:
+
+                "<b>%{label}</b>" +
+
+                "<br>Transactions: " +
+
+                "%{value:,}" +
+
+                "<extra></extra>"
+        },
+
+
+        // =====================================
+        // LINKS
+        // =====================================
+
+        link: {
+
+            source: data.links.map(
+                link =>
+                    Number(link.source)
+            ),
+
+            target: data.links.map(
+                link =>
+                    Number(link.target)
+            ),
+
+            value: data.links.map(
+                link =>
+                    Number(link.value) || 0
+            ),
+
+            color: linkColors,
+
+            hovertemplate:
+
+                "<b>%{source.label}</b>" +
+
+                " → " +
+
+                "<b>%{target.label}</b>" +
+
+                "<br>Transactions: " +
+
+                "%{value:,}" +
+
+                "<extra></extra>"
+        }
+    };
+
+
+    // =========================================
+    // LAYOUT
+    // =========================================
+
+    const layout = {
+
+        template: "plotly_dark",
+
+        margin: {
+
+            l: 20,
+
+            r: 20,
+
+            t: 25,
+
+            b: 25
+        },
+
+
+        // Transparent background
+        paper_bgcolor:
+            "rgba(0,0,0,0)",
+
+        plot_bgcolor:
+            "rgba(0,0,0,0)",
+
+
+        font: {
+
+            family:
+                "Arial, Helvetica, sans-serif",
+
+            color:
+                "#B8B8D0",
+
+            size: 12
+        },
+
+
+        // Hover style
+        hoverlabel: {
+
+            bgcolor:
+                "#15152B",
+
+            bordercolor:
+                "#6C3CE1",
+
+            font: {
+
+                color:
+                    "white",
+
+                size:
+                    13
+            }
+        }
+    };
+
+
+    // =========================================
+    // CREATE / UPDATE CHART
+    // =========================================
+
+    Plotly.react(
+
+        "sankeyChart",
+
+        [trace],
+
+        layout,
+
+        {
+
+            responsive: true,
+
+            displaylogo: false
+        }
+    );
+}
+
+
+// =============================================
+// LOAD SANKEY DATA FROM DJANGO
+// =============================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const sankeyElement =
+            document.getElementById(
+                "sankey-chart-data"
+            );
+
+
+        // -------------------------------------
+        // ELEMENT CHECK
+        // -------------------------------------
+
+        if (!sankeyElement) {
+
+            console.error(
+                "sankey-chart-data element NOT FOUND"
+            );
+
+            return;
+        }
+
+
+        // -------------------------------------
+        // PARSE DATA
+        // -------------------------------------
+
+        try {
+
+            const sankeyData =
+                JSON.parse(
+                    sankeyElement.textContent
+                );
+
+
+            console.log(
+                "Parsed Sankey Data:",
+                sankeyData
+            );
+
+
+            // ---------------------------------
+            // UPDATE CHART
+            // ---------------------------------
+
+            updateSankeyChart(
+                sankeyData
+            );
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Error parsing Sankey data:",
+                error
+            );
+        }
+    }
+);
+
+
+
+
+    function updateViolinChart(data) {
+
+    console.log("FRAUD VIOLIN DATA:", data);
+
+    // =========================================
+    // VALIDATION
+    // =========================================
+
+    if (!Array.isArray(data)) {
+
+        console.error(
+            "Violin data must be an array:",
+            data
+        );
+
+        return;
+    }
+
+    if (data.length === 0) {
+
+        console.error(
+            "No fraud amount data available"
+        );
+
+        return;
+    }
+
+
+    // =========================================
+    // COLORS
+    // =========================================
+
+    const colors = [
+        "#6C3CE1",
+        "#8B6FE8",
+        "#FFB432",
+        "#FF6B6B",
+        "#00D4AA"
+    ];
+
+    const fillColors = [
+        "rgba(108,60,225,0.25)",
+        "rgba(139,111,232,0.25)",
+        "rgba(255,180,50,0.25)",
+        "rgba(255,107,107,0.25)",
+        "rgba(0,212,170,0.25)"
+    ];
+
+
+    // =========================================
+    // CREATE VIOLIN TRACES
+    // =========================================
+
+    const traces = data
+        .filter(d =>
+            Array.isArray(d.amounts) &&
+            d.amounts.length > 0
+        )
+        .map((d, i) => {
+
+            const color =
+                colors[i % colors.length];
+
+            const fillColor =
+                fillColors[i % fillColors.length];
+
+            const amounts =
+                d.amounts.map(
+                    amount =>
+                        Number(amount) || 0
+                );
+
+
+            return {
+
+                type: "violin",
+
+                y: amounts,
+
+                name: d.type,
+
+
+                // =================================
+                // BOX PLOT
+                // =================================
+
+                box: {
+                    visible: true,
+                    width: 0.25,
+                    fillcolor:
+                        "rgba(255,255,255,0.05)"
+                },
+
+
+                // =================================
+                // MEAN LINE
+                // =================================
+
+                meanline: {
+                    visible: true
+                },
+
+
+                // =================================
+                // VIOLIN STYLE
+                // =================================
+
+                line: {
+                    color: color,
+                    width: 2
+                },
+
+                fillcolor: fillColor,
+
+                opacity: 0.9,
+
+
+                // =================================
+                // DATA POINTS
+                // =================================
+
+                points: "all",
+
+                pointpos: 0,
+
+                jitter: 0.2,
+
+                marker: {
+
+                    color: color,
+
+                    size: 4,
+
+                    opacity: 0.55,
+
+                    line: {
+                        color:
+                            "rgba(255,255,255,0.15)",
+                        width: 0.5
+                    }
+                },
+
+
+                // =================================
+                // HOVER
+                // =================================
+
+                hovertemplate:
+
+                    "<b>%{fullData.name}</b>" +
+
+                    "<br>Fraud Amount: " +
+
+                    "$%{y:,.2f}" +
+
+                    "<extra></extra>"
+            };
+        });
+
+
+    // =========================================
+    // VALID TRACE CHECK
+    // =========================================
+
+    if (traces.length === 0) {
+
+        console.error(
+            "No valid violin data found"
+        );
+
+        return;
+    }
+
+
+    // =========================================
+    // LAYOUT
+    // =========================================
+
+    const layout = {
+
+        template: "plotly_dark",
+
+
+        margin: {
+
+            l: 70,
+
+            r: 30,
+
+            t: 25,
+
+            b: 80
+        },
+
+
+        // =====================================
+        // TRANSPARENT BACKGROUND
+        // =====================================
+
+        paper_bgcolor:
+            "rgba(0,0,0,0)",
+
+        plot_bgcolor:
+            "rgba(0,0,0,0)",
+
+
+        // =====================================
+        // Y AXIS
+        // =====================================
+
+        yaxis: {
+
+            gridcolor:
+                "rgba(255,255,255,0.05)",
+
+            zeroline: false,
+
+            tickfont: {
+
+                color: "#7A7A9A",
+
+                size: 11
+            },
+
+            title: {
+
+                text: "Fraud Amount ($)",
+
+                font: {
+
+                    color: "#B8B8D0",
+
+                    size: 13
+                }
+            },
+
+            tickprefix: "$",
+
+            separatethousands: true
+        },
+
+
+        // =====================================
+        // X AXIS
+        // =====================================
+
+        xaxis: {
+
+            tickfont: {
+
+                color: "#7A7A9A",
+
+                size: 11
+            },
+
+            tickangle: -20,
+
+            automargin: true,
+
+            showgrid: false
+        },
+
+
+        // =====================================
+        // VIOLIN SPACING
+        // =====================================
+
+        violingap: 0.35,
+
+        violingroupgap: 0.20,
+
+        violinmode: "group",
+
+
+        // =====================================
+        // LEGEND
+        // =====================================
+
+        showlegend: true,
+
+        legend: {
+
+            orientation: "h",
+
+            y: -0.18,
+
+            x: 0.5,
+
+            xanchor: "center",
+
+            font: {
+
+                color: "#B8B8D0",
+
+                size: 11
+            }
+        },
+
+
+        // =====================================
+        // HOVER
+        // =====================================
+
+        hoverlabel: {
+
+            bgcolor: "#15152B",
+
+            bordercolor: "#6C3CE1",
+
+            font: {
+
+                color: "white",
+
+                size: 13
+            }
+        }
+    };
+
+
+    // =========================================
+    // CREATE / UPDATE
+    // =========================================
+
+    Plotly.react(
+
+        "violinChart",
+
+        traces,
+
+        layout,
+
+        {
+
+            responsive: true,
+
+            displaylogo: false,
+
+            modeBarButtonsToRemove: [
+                "lasso2d",
+                "select2d"
+            ]
+        }
+    );
+}
+
+
+// =============================================
+// LOAD DATA FROM DJANGO
+// =============================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const violinElement =
+            document.getElementById(
+                "violin-chart-data"
+            );
+
+
+        // -----------------------------------------
+        // ELEMENT CHECK
+        // -----------------------------------------
+
+        if (!violinElement) {
+
+            console.error(
+                "violin-chart-data element NOT FOUND"
+            );
+
+            return;
+        }
+
+
+        // -----------------------------------------
+        // PARSE JSON
+        // -----------------------------------------
+
+        try {
+
+            const violinData =
+                JSON.parse(
+                    violinElement.textContent
+                );
+
+
+            console.log(
+                "Parsed Violin Data:",
+                violinData
+            );
+
+
+            // -------------------------------------
+            // UPDATE CHART
+            // -------------------------------------
+
+            updateViolinChart(
+                violinData
+            );
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Error parsing Violin data:",
+                error
+            );
+        }
+    }
+);
+
+
+
+
+
+    function updateSunburstChart(data) {
+
+    console.log("FRAUD SUNBURST DATA:", data);
+
+
+    // =========================================
+    // VALIDATION
+    // =========================================
+
+    if (!data) {
+
+        console.error(
+            "Sunburst data is missing"
+        );
+
+        return;
+    }
+
+
+    if (!Array.isArray(data.labels)) {
+
+        console.error(
+            "Sunburst labels must be an array:",
+            data.labels
+        );
+
+        return;
+    }
+
+
+    if (!Array.isArray(data.parents)) {
+
+        console.error(
+            "Sunburst parents must be an array:",
+            data.parents
+        );
+
+        return;
+    }
+
+
+    if (!Array.isArray(data.values)) {
+
+        console.error(
+            "Sunburst values must be an array:",
+            data.values
+        );
+
+        return;
+    }
+
+
+    if (
+        data.labels.length !==
+        data.parents.length ||
+        data.labels.length !==
+        data.values.length
+    ) {
+
+        console.error(
+            "Sunburst arrays have different lengths"
+        );
+
+        return;
+    }
+
+
+    if (data.labels.length === 0) {
+
+        console.error(
+            "No Sunburst data available"
+        );
+
+        return;
+    }
+
+
+    // =========================================
+    // PREPARE VALUES
+    // =========================================
+
+    const values = data.values.map(
+        value => Number(value) || 0
+    );
+
+
+    // =========================================
+    // COLORS
+    // =========================================
+
+    const colors = data.labels.map(
+        label => {
+
+            const name =
+                String(label).toLowerCase();
+
+
+            // Fraud
+            if (
+                name.includes("fraud")
+            ) {
+                return "#FF6B6B";
+            }
+
+
+            // Safe
+            if (
+                name.includes("safe")
+            ) {
+                return "#00D4AA";
+            }
+
+
+            // Root
+            if (
+                name ===
+                "all transactions"
+            ) {
+                return "#6C3CE1";
+            }
+
+
+            // Transaction types
+            return "#8B6FE8";
+        }
+    );
+
+
+    // =========================================
+    // SUNBURST TRACE
+    // =========================================
+
+    const trace = {
+
+        type: "sunburst",
+
+        labels: data.labels,
+
+        parents: data.parents,
+
+        values: values,
+
+        branchvalues: "total",
+
+        marker: {
+
+            colors: colors,
+
+            line: {
+
+                color:
+                    "rgba(10,10,26,0.85)",
+
+                width: 2
+            }
+        },
+
+
+        // =====================================
+        // TEXT
+        // =====================================
+
+        text: values.map(
+            value =>
+                value.toLocaleString()
+        ),
+
+        textinfo:
+            "label+text",
+
+        textfont: {
+
+            color: "white",
+
+            size: 12
+        },
+
+        insidetextorientation:
+            "radial",
+
+
+        // =====================================
+        // HOVER
+        // =====================================
+
+        hovertemplate:
+
+            "<b>%{label}</b>" +
+
+            "<br>Transactions: " +
+
+            "%{value:,}" +
+
+            "<extra></extra>"
+    };
+
+
+    // =========================================
+    // LAYOUT
+    // =========================================
+
+    const layout = {
+
+        template: "plotly_dark",
+
+        margin: {
+
+            l: 10,
+
+            r: 10,
+
+            t: 10,
+
+            b: 10
+        },
+
+
+        paper_bgcolor:
+            "rgba(0,0,0,0)",
+
+        plot_bgcolor:
+            "rgba(0,0,0,0)",
+
+
+        font: {
+
+            family:
+                "Arial, Helvetica, sans-serif",
+
+            color:
+                "#B8B8D0",
+
+            size: 12
+        },
+
+
+        hoverlabel: {
+
+            bgcolor:
+                "#15152B",
+
+            bordercolor:
+                "#6C3CE1",
+
+            font: {
+
+                color: "white",
+
+                size: 13
+            }
+        }
+    };
+
+
+    // =========================================
+    // CREATE / UPDATE
+    // =========================================
+
+    Plotly.react(
+
+        "sunburstChart",
+
+        [trace],
+
+        layout,
+
+        {
+
+            responsive: true,
+
+            displaylogo: false,
+
+            modeBarButtonsToRemove: [
+
+                "lasso2d",
+
+                "select2d"
+            ]
+        }
+    );
+}
+
+
+// =============================================
+// LOAD DATA FROM DJANGO
+// =============================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const sunburstElement =
+            document.getElementById(
+                "sunburst-chart-data"
+            );
+
+
+        if (!sunburstElement) {
+
+            console.error(
+                "sunburst-chart-data element NOT FOUND"
+            );
+
+            return;
+        }
+
+
+        try {
+
+            const sunburstData =
+                JSON.parse(
+                    sunburstElement.textContent
+                );
+
+
+            console.log(
+                "Parsed Sunburst Data:",
+                sunburstData
+            );
+
+
+            updateSunburstChart(
+                sunburstData
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Error parsing Sunburst data:",
+                error
+            );
+        }
+    }
+);
+
+
+
+
+
+
+
+    // =====================================================
+// FRAUD CASE TABLE
+// =====================================================
+
+let fraudCases = [];
+
+let currentPage = 1;
+
+let pageSize = 10;
+
+
+// =====================================================
+// INITIALIZE
+// =====================================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        loadFraudCases();
+
+    }
+);
+
+
+// =====================================================
+// LOAD FRAUD CASES
+// =====================================================
+
+function loadFraudCases() {
+
+    const element =
+        document.getElementById(
+            "fraud-cases-data"
+        );
+
+
+    if (!element) {
+
+        console.error(
+            "fraud-cases-data element NOT FOUND"
+        );
+
+        return;
+    }
+
+
+    try {
+
+        fraudCases =
+            JSON.parse(
+                element.textContent
+            );
+
+
+        if (!Array.isArray(fraudCases)) {
+
+            console.error(
+                "fraud_cases must be an array"
+            );
+
+            fraudCases = [];
+
+            return;
+        }
+
+
+        console.log(
+            "Fraud Cases:",
+            fraudCases
+        );
+
+
+        renderTable();
+
+        updatePagination();
+
+
+    } catch (error) {
+
+        console.error(
+            "Error parsing fraud_cases:",
+            error
+        );
+    }
+}
+
+
+// =====================================================
+// RENDER TABLE
+// =====================================================
+
+function renderTable() {
+
+    const tbody =
+        document.getElementById(
+            "tableBody"
+        );
+
+
+    if (!tbody) {
+
+        console.error(
+            "tableBody NOT FOUND"
+        );
+
+        return;
+    }
+
+
+    // -----------------------------------------------
+    // PAGE DATA
+    // -----------------------------------------------
+
+    const start =
+        (currentPage - 1) *
+        pageSize;
+
+
+    const end =
+        start + pageSize;
+
+
+    const pageData =
+        fraudCases.slice(
+            start,
+            end
+        );
+
+
+    // -----------------------------------------------
+    // NO DATA
+    // -----------------------------------------------
+
+    if (pageData.length === 0) {
+
+        tbody.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="8"
+                    style="
+                        text-align: center;
+                        padding: 40px;
+                        color: var(--text-muted);
+                    "
+                >
+
+                    <i
+                        class="fas fa-inbox"
+                        style="
+                            font-size: 40px;
+                            display: block;
+                            margin-bottom: 10px;
+                        "
+                    ></i>
+
+                    No fraud cases found
+
+                </td>
+
+            </tr>
+
+        `;
+
+        updateRecordCount();
+
+        return;
+    }
+
+
+    // -----------------------------------------------
+    // STATUS CLASSES
+    // -----------------------------------------------
+
+    const statusColors = {
+
+        "Confirmed":
+            "confirmed",
+
+        "Under Review":
+            "review",
+
+        "False Positive":
+            "false-positive"
+    };
+
+
+    // -----------------------------------------------
+    // CREATE ROWS
+    // -----------------------------------------------
+
+    tbody.innerHTML =
+        pageData.map(
+            caseData => {
+
+                const amount =
+                    Number(
+                        caseData.amount
+                    ) || 0;
+
+
+                const statusClass =
+                    statusColors[
+                        caseData.status
+                    ] || "review";
+
+
+                return `
+
+                    <tr>
+
+                        <td>
+                            <span class="case-id">
+                                ${caseData.case_id}
+                            </span>
+                        </td>
+
+
+                        <td>
+                            <span class="tx-id">
+                                ${caseData.transaction_id}
+                            </span>
+                        </td>
+
+
+                        <td>
+                            ${caseData.customer_id}
+                        </td>
+
+
+                        <td class="amount">
+
+                            $${amount.toLocaleString(
+                                undefined,
+                                {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }
+                            )}
+
+                        </td>
+
+
+                        <td>
+
+                            <span class="type-badge">
+                                ${caseData.fraud_type}
+                            </span>
+
+                        </td>
+
+
+                        <td>
+
+                            <span
+                                class="status-badge ${statusClass}"
+                            >
+                                ${caseData.status}
+                            </span>
+
+                        </td>
+
+
+                        <td>
+                            ${caseData.detection_time}
+                        </td>
+
+
+                        <td>
+                            ${caseData.investigator}
+                        </td>
+
+                    </tr>
+
+                `;
+
+            }
+        ).join("");
+
+
+    updateRecordCount();
+}
+
+
+// =====================================================
+// RECORD COUNT
+// =====================================================
+
+function updateRecordCount() {
+
+    const rowCount =
+        document.getElementById(
+            "rowCount"
+        );
+
+
+    if (!rowCount) {
+        return;
+    }
+
+
+    const total =
+        fraudCases.length;
+
+
+    if (total === 0) {
+
+        rowCount.textContent =
+            "Showing 0 records";
+
+        return;
+    }
+
+
+    const start =
+        (currentPage - 1) *
+        pageSize + 1;
+
+
+    const end =
+        Math.min(
+            currentPage * pageSize,
+            total
+        );
+
+
+    rowCount.textContent =
+        `Showing ${start}-${end} of ${total} records`;
+}
+
+
+// =====================================================
+// PAGINATION
+// =====================================================
+
+function updatePagination() {
+
+    const total =
+        fraudCases.length;
+
+
+    const totalPages =
+        Math.ceil(
+            total / pageSize
+        );
+
+
+    const prevBtn =
+        document.getElementById(
+            "prevBtn"
+        );
+
+
+    const nextBtn =
+        document.getElementById(
+            "nextBtn"
+        );
+
+
+    if (prevBtn) {
+
+        prevBtn.disabled =
+            currentPage <= 1;
+    }
+
+
+    if (nextBtn) {
+
+        nextBtn.disabled =
+            currentPage >= totalPages;
+    }
+
+
+    const pageNumbers =
+        document.getElementById(
+            "pageNumbers"
+        );
+
+
+    if (!pageNumbers) {
+        return;
+    }
+
+
+    pageNumbers.innerHTML = "";
+
+
+    if (totalPages === 0) {
+        return;
+    }
+
+
+    const maxVisible = 5;
+
+
+    let startPage =
+        Math.max(
+            1,
+            currentPage -
+            Math.floor(
+                maxVisible / 2
+            )
+        );
+
+
+    let endPage =
+        Math.min(
+            totalPages,
+            startPage +
+            maxVisible -
+            1
+        );
+
+
+    if (
+        endPage - startPage <
+        maxVisible - 1
+    ) {
+
+        startPage =
+            Math.max(
+                1,
+                endPage -
+                maxVisible +
+                1
+            );
+    }
+
+
+    // -----------------------------------------------
+    // FIRST PAGE
+    // -----------------------------------------------
+
+    if (startPage > 1) {
+
+        addPageButton(
+            pageNumbers,
+            1
+        );
+
+
+        if (startPage > 2) {
+
+            addDots(
+                pageNumbers
+            );
+        }
+    }
+
+
+    // -----------------------------------------------
+    // PAGE NUMBERS
+    // -----------------------------------------------
+
+    for (
+        let page = startPage;
+        page <= endPage;
+        page++
+    ) {
+
+        addPageButton(
+            pageNumbers,
+            page
+        );
+    }
+
+
+    // -----------------------------------------------
+    // LAST PAGE
+    // -----------------------------------------------
+
+    if (
+        endPage < totalPages
+    ) {
+
+        if (
+            endPage <
+            totalPages - 1
+        ) {
+
+            addDots(
+                pageNumbers
+            );
+        }
+
+
+        addPageButton(
+            pageNumbers,
+            totalPages
+        );
+    }
+}
+
+
+// =====================================================
+// PAGE BUTTON
+// =====================================================
+
+function addPageButton(
+    container,
+    page
+) {
+
+    const button =
+        document.createElement(
+            "button"
+        );
+
+
+    button.textContent =
+        page;
+
+
+    if (
+        page === currentPage
+    ) {
+
+        button.classList.add(
+            "active"
+        );
+    }
+
+
+    button.onclick =
+        function () {
+
+            goToPage(page);
+
+        };
+
+
+    container.appendChild(
+        button
+    );
+}
+
+
+// =====================================================
+// DOTS
+// =====================================================
+
+function addDots(
+    container
+) {
+
+    const span =
+        document.createElement(
+            "span"
+        );
+
+
+    span.textContent =
+        "...";
+
+
+    container.appendChild(
+        span
+    );
+}
+
+
+// =====================================================
+// GO TO PAGE
+// =====================================================
+
+function goToPage(page) {
+
+    const totalPages =
+        Math.ceil(
+            fraudCases.length /
+            pageSize
+        );
+
+
+    if (
+        page < 1 ||
+        page > totalPages
+    ) {
+
+        return;
+    }
+
+
+    currentPage = page;
+
+
+    renderTable();
+
+    updatePagination();
+}
+
+
+// =====================================================
+// PREVIOUS PAGE
+// =====================================================
+
+function prevPage() {
+
+    if (currentPage > 1) {
+
+        currentPage--;
+
+        renderTable();
+
+        updatePagination();
+    }
+}
+
+
+// =====================================================
+// NEXT PAGE
+// =====================================================
+
+function nextPage() {
+
+    const totalPages =
+        Math.ceil(
+            fraudCases.length /
+            pageSize
+        );
+
+
+    if (
+        currentPage <
+        totalPages
+    ) {
+
+        currentPage++;
+
+        renderTable();
+
+        updatePagination();
+    }
+}
+
+
+// =====================================================
+// CHANGE PAGE SIZE
+// =====================================================
+
+function changePageSize() {
+
+    const select =
+        document.getElementById(
+            "pageSize"
+        );
+
+
+    if (!select) {
+        return;
+    }
+
+
+    pageSize =
+        Number(
+            select.value
+        );
+
+
+    currentPage = 1;
+
+
+    renderTable();
+
+    updatePagination();
+}
+</script>
+
+</body>
+</html>

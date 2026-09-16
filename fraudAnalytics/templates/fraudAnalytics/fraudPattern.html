@@ -1,0 +1,926 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>Fraud Pattern Analysis - Fraud Detection System</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+          rel="stylesheet">
+    <!-- Plotly -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+
+    <link rel="stylesheet" href="{% static 'fraudAnalytics/css/fraudpattern.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chatbot.css' %}">
+</head>
+<body>
+
+<!-- TOPBAR -->
+{% include 'components/topbar.html' %}
+
+<div class="app-container">
+    <!-- SIDEBAR -->
+    {% include 'components/sidebar.html' %}
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1><i class="fas fa-bolt"></i> Fraud Pattern Analysis</h1>
+                <p>Identify and analyze fraud patterns, trends, and anomalies</p>
+            </div>
+
+        </div>
+
+        <!-- FILTERS -->
+
+        <!-- STATS CARDS -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-icon purple">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-number" id="totalPatterns">{{ total_patterns }}</span>
+                    <span class="stat-label">Total Patterns</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-number" id="detectedPatterns">{{ detected_patterns }}</span>
+                    <span class="stat-label">Detected</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon red">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-number" id="highRiskPatterns">{{ high_risk_patterns }}</span>
+                    <span class="stat-label">High Risk Patterns</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon yellow">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-number" id="pendingPatterns">{{ pending_review }}</span>
+                    <span class="stat-label">Pending Review</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon blue">
+                    <i class="fas fa-percent"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-number" id="accuracyRate">{{ detection_accuracy }}%</span>
+                    <span class="stat-label">Detection Accuracy</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon orange">
+                    <i class="fas fa-arrow-up"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-number" id="trendChange">{{ trend_change }}%</span>
+                    <span class="stat-label">Trend Change</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHARTS GRID -->
+        <div class="charts-grid">
+
+            <!-- Chart 1: Pattern Distribution -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>
+                        <i class="fas fa-chart-pie"></i>
+                        Pattern Type Distribution
+                    </h3>
+
+                    <span class="chart-badge">
+                Pie Chart
+            </span>
+                </div>
+
+                <div class="chart-body">
+                    <div
+                            id="patternDistributionChart"
+                            class="chart-container">
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Chart 2: Pattern Severity Distribution -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>
+                        <i class="fas fa-chart-bar"></i>
+                        Pattern Severity Distribution
+                    </h3>
+
+                    <span class="chart-badge">
+                Bar Chart
+            </span>
+                </div>
+
+                <div class="chart-body">
+                    <div
+                            id="severityChart"
+                            class="chart-container">
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Chart 3: Patterns Over Time -->
+            <div class="chart-card full-width">
+                <div class="chart-header">
+                    <h3>
+                        <i class="fas fa-chart-line"></i>
+                        Patterns Over Time
+                    </h3>
+
+                    <span class="chart-badge">
+                Line Chart
+            </span>
+                </div>
+
+                <div class="chart-body">
+                    <div
+                            id="patternTrendChart"
+                            class="chart-container">
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Chart 4: Pattern Heatmap -->
+            <div class="chart-card full-width">
+                <div class="chart-header">
+                    <h3>
+                        <i class="fas fa-th"></i>
+                        Pattern Heatmap
+                    </h3>
+
+                    <span class="chart-badge">
+                Heatmap
+            </span>
+                </div>
+
+                <div class="chart-body">
+                    <div
+                            id="heatmapChart"
+                            class="chart-container">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+</div>
+{% include 'components/chatbot.html' %}
+
+<script src="{% static 'js/chatbot.js' %}"></script>
+<script src="{% static 'js/fraud_pattern.js' %}"></script>
+{{ pattern_distribution_data|json_script:"pattern-distribution-data" }}
+{{ pattern_trend_data|json_script:"pattern-trend-data" }}
+{{ severity_data|json_script:"severity-data" }}
+{{ heatmap_data|json_script:"heatmap-data" }}
+<script>
+    function loadPatternDistributionChart() {
+
+    const element =
+        document.getElementById(
+            "pattern-distribution-data"
+        );
+
+    if (!element) {
+
+        console.error(
+            "pattern-distribution-data element not found"
+        );
+
+        return;
+    }
+
+    try {
+
+        const data =
+            JSON.parse(element.textContent);
+
+        console.log(
+            "PATTERN DISTRIBUTION DATA:",
+            data
+        );
+
+        if (
+            !data ||
+            !Array.isArray(data.labels) ||
+            !Array.isArray(data.values)
+        ) {
+
+            console.error(
+                "Invalid pattern distribution data:",
+                data
+            );
+
+            return;
+        }
+
+        updatePatternDistributionChart(data);
+
+    } catch (error) {
+
+        console.error(
+            "PATTERN DISTRIBUTION JSON ERROR:",
+            error
+        );
+    }
+}
+
+
+function updatePatternDistributionChart(data) {
+
+    const trace = {
+
+        values: data.values,
+
+        labels: data.labels,
+
+        type: "pie",
+
+        hole: 0.45,
+
+        marker: {
+            colors: data.colors
+        },
+
+        textinfo: "label+percent",
+
+        textposition: "inside",
+
+        textfont: {
+            color: "white",
+            size: 12
+        },
+
+        hovertemplate:
+            "<b>%{label}</b><br>" +
+            "Patterns: %{value:,}<br>" +
+            "Percentage: %{percent}" +
+            "<extra></extra>"
+    };
+
+
+    const layout = {
+
+        template: "plotly_dark",
+
+        margin: {
+            l: 20,
+            r: 20,
+            t: 20,
+            b: 20
+        },
+
+        paper_bgcolor:
+            "rgba(0,0,0,0)",
+
+        plot_bgcolor:
+            "rgba(0,0,0,0)",
+
+        showlegend: true,
+
+        legend: {
+
+            orientation: "h",
+
+            y: -0.1,
+
+            font: {
+                color: "#B8B8D0",
+                size: 12
+            }
+        }
+    };
+
+
+    Plotly.newPlot(
+        "patternDistributionChart",
+        [trace],
+        layout,
+        {
+            responsive: true,
+            displayModeBar: false
+        }
+    );
+}
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+        loadPatternDistributionChart();
+    }
+);
+
+    function loadPatternTrendChart() {
+
+    const element =
+        document.getElementById(
+            "pattern-trend-data"
+        );
+
+    if (!element) {
+
+        console.error(
+            "pattern-trend-data element not found"
+        );
+
+        return;
+    }
+
+    try {
+
+        const data =
+            JSON.parse(element.textContent);
+
+        console.log(
+            "PATTERN TREND DATA:",
+            data
+        );
+
+        if (
+            !data ||
+            !Array.isArray(data.dates) ||
+            !Array.isArray(data.counts)
+        ) {
+
+            console.error(
+                "Invalid pattern trend data:",
+                data
+            );
+
+            return;
+        }
+
+        updatePatternTrendChart(data);
+
+    } catch (error) {
+
+        console.error(
+            "PATTERN TREND JSON ERROR:",
+            error
+        );
+    }
+}
+
+
+function updatePatternTrendChart(data) {
+
+    const trace = {
+
+        x: data.dates,
+
+        y: data.counts,
+
+        type: "scatter",
+
+        mode: "lines+markers",
+
+        name: "Patterns",
+
+        line: {
+            color: "#6C3CE1",
+            width: 2
+        },
+
+        marker: {
+            color: "#6C3CE1",
+            size: 6
+        },
+
+        fill: "tozeroy",
+
+        fillcolor:
+            "rgba(108, 60, 225, 0.2)",
+
+        hovertemplate:
+            "<b>%{x}</b><br>" +
+            "Patterns: %{y:,}" +
+            "<extra></extra>"
+    };
+
+
+    const layout = {
+
+        template: "plotly_dark",
+
+        margin: {
+            l: 50,
+            r: 20,
+            t: 20,
+            b: 50
+        },
+
+        paper_bgcolor:
+            "rgba(0,0,0,0)",
+
+        plot_bgcolor:
+            "rgba(0,0,0,0)",
+
+        xaxis: {
+
+            gridcolor:
+                "rgba(255,255,255,0.05)",
+
+            tickfont: {
+                color: "#B8B8D0"
+            },
+
+            tickangle: -20
+        },
+
+        yaxis: {
+
+            gridcolor:
+                "rgba(255,255,255,0.05)",
+
+            tickfont: {
+                color: "#B8B8D0"
+            },
+
+            title: "Number of Patterns",
+
+            rangemode: "tozero"
+        },
+
+        hovermode: "x unified"
+    };
+
+
+    Plotly.newPlot(
+        "patternTrendChart",
+        [trace],
+        layout,
+        {
+            responsive: true,
+            displayModeBar: false
+        }
+    );
+}
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+        loadPatternTrendChart();
+    }
+);
+
+
+    function loadSeverityChart() {
+
+    const element =
+        document.getElementById(
+            "severity-data"
+        );
+
+    if (!element) {
+
+        console.error(
+            "severity-data element not found"
+        );
+
+        return;
+    }
+
+    try {
+
+        const data =
+            JSON.parse(element.textContent);
+
+        console.log(
+            "SEVERITY DATA:",
+            data
+        );
+
+        if (
+            !data ||
+            !Array.isArray(data.labels) ||
+            !Array.isArray(data.values)
+        ) {
+
+            console.error(
+                "Invalid severity data:",
+                data
+            );
+
+            return;
+        }
+
+        updateSeverityChart(data);
+
+    } catch (error) {
+
+        console.error(
+            "SEVERITY JSON ERROR:",
+            error
+        );
+    }
+}
+
+
+function updateSeverityChart(data) {
+
+    const trace = {
+
+        x: data.labels,
+
+        y: data.values,
+
+        type: "bar",
+
+        marker: {
+            color: data.colors,
+            opacity: 0.8
+        },
+
+        text: data.values.map(
+            value =>
+                Number(value).toLocaleString()
+        ),
+
+        textposition: "outside",
+
+        textfont: {
+            color: "white"
+        },
+
+        hovertemplate:
+            "<b>%{x}</b><br>" +
+            "Patterns: %{y:,}" +
+            "<extra></extra>"
+    };
+
+
+    const layout = {
+
+        template: "plotly_dark",
+
+        margin: {
+            l: 50,
+            r: 20,
+            t: 30,
+            b: 50
+        },
+
+        paper_bgcolor:
+            "rgba(0,0,0,0)",
+
+        plot_bgcolor:
+            "rgba(0,0,0,0)",
+
+        xaxis: {
+
+            gridcolor:
+                "rgba(255,255,255,0.05)",
+
+            tickfont: {
+                color: "#B8B8D0"
+            }
+        },
+
+        yaxis: {
+
+            gridcolor:
+                "rgba(255,255,255,0.05)",
+
+            tickfont: {
+                color: "#B8B8D0"
+            },
+
+            title: "Number of Patterns",
+
+            rangemode: "tozero"
+        }
+    };
+
+
+    Plotly.newPlot(
+        "severityChart",
+        [trace],
+        layout,
+        {
+            responsive: true,
+            displayModeBar: false
+        }
+    );
+}
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+        loadSeverityChart();
+    }
+);
+
+
+
+    function loadSegmentPatternChart() {
+
+    const element =
+        document.getElementById("segment-pattern-data");
+
+    if (!element) {
+        console.error(
+            "segment-pattern-data element not found"
+        );
+        return;
+    }
+
+    try {
+
+        const data =
+            JSON.parse(element.textContent);
+
+        console.log(
+            "SEGMENT PATTERN DATA:",
+            data
+        );
+
+        if (
+            !data ||
+            !Array.isArray(data.labels) ||
+            !Array.isArray(data.values)
+        ) {
+            console.error(
+                "Invalid segment pattern data:",
+                data
+            );
+            return;
+        }
+
+        updateSegmentPatternChart(data);
+
+    } catch (error) {
+
+        console.error(
+            "SEGMENT PATTERN JSON ERROR:",
+            error
+        );
+    }
+}
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+        loadSegmentPatternChart();
+    }
+);
+
+
+    function updateSegmentPatternChart(data) {
+
+    const total = data.values.reduce(
+        (sum, val) => sum + Number(val || 0),
+        0
+    );
+
+    const trace = {
+
+        values: data.values,
+
+        labels: data.labels,
+
+        type: "pie",
+
+        hole: 0.5,
+
+        marker: {
+            colors: data.colors
+        },
+
+        textinfo: "label+percent",
+
+        textposition: "inside",
+
+        textfont: {
+            color: "white",
+            size: 12
+        },
+
+        hovertemplate:
+            "<b>%{label}</b><br>" +
+            "Patterns: %{value:,}<br>" +
+            "Percentage: %{percent}" +
+            "<extra></extra>"
+    };
+
+    const layout = {
+
+        template: "plotly_dark",
+
+        margin: {
+            l: 20,
+            r: 20,
+            t: 20,
+            b: 20
+        },
+
+        paper_bgcolor: "rgba(0,0,0,0)",
+
+        plot_bgcolor: "rgba(0,0,0,0)",
+
+        showlegend: true,
+
+        legend: {
+            orientation: "h",
+            y: -0.1,
+            font: {
+                color: "#B8B8D0"
+            }
+        },
+
+        annotations: [
+            {
+                font: {
+                    size: 16,
+                    color: "white"
+                },
+
+                showarrow: false,
+
+                text:
+                    `Total<br>${total.toLocaleString()}`
+            }
+        ]
+    };
+
+    Plotly.newPlot(
+        "segmentPatternChart",
+        [trace],
+        layout,
+        {
+            responsive: true,
+            displayModeBar: false
+        }
+    );
+}
+
+
+    function loadHeatmapChart() {
+
+    const element =
+        document.getElementById("heatmap-data");
+
+    if (!element) {
+        console.error(
+            "heatmap-data element not found"
+        );
+        return;
+    }
+
+    try {
+
+        const data =
+            JSON.parse(element.textContent);
+
+        console.log(
+            "HEATMAP DATA:",
+            data
+        );
+
+        if (
+            !data ||
+            !Array.isArray(data.x) ||
+            !Array.isArray(data.y) ||
+            !Array.isArray(data.z)
+        ) {
+            console.error(
+                "Invalid heatmap data:",
+                data
+            );
+            return;
+        }
+
+        updateHeatmapChart(data);
+
+    } catch (error) {
+
+        console.error(
+            "HEATMAP JSON ERROR:",
+            error
+        );
+    }
+}
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+        loadHeatmapChart();
+    }
+);
+
+
+    function updateHeatmapChart(data) {
+
+    const trace = {
+
+        z: data.z,
+
+        x: data.x.map(
+            h => String(h).padStart(2, "0") + ":00"
+        ),
+
+        y: data.y,
+
+        type: "heatmap",
+
+        colorscale: [
+            [0, "#0A0A1A"],
+            [0.2, "#2A2A4A"],
+            [0.4, "#6C3CE1"],
+            [0.6, "#8B6FE8"],
+            [0.8, "#FFB432"],
+            [1, "#FF6B6B"]
+        ],
+
+        colorbar: {
+            title: "Pattern Count",
+            titlefont: {
+                color: "#B8B8D0"
+            },
+            tickfont: {
+                color: "#B8B8D0"
+            }
+        },
+
+        hovertemplate:
+            "<b>%{y}</b> %{x}<br>" +
+            "Patterns: %{z:,}" +
+            "<extra></extra>"
+    };
+
+    const layout = {
+
+        template: "plotly_dark",
+
+        margin: {
+            l: 80,
+            r: 20,
+            t: 20,
+            b: 60
+        },
+
+        paper_bgcolor: "rgba(0,0,0,0)",
+
+        plot_bgcolor: "rgba(0,0,0,0)",
+
+        xaxis: {
+            title: "Hour",
+            tickfont: {
+                color: "#B8B8D0"
+            },
+            side: "bottom"
+        },
+
+        yaxis: {
+            title: "Day",
+            tickfont: {
+                color: "#B8B8D0"
+            },
+            autorange: "reversed"
+        }
+    };
+
+    Plotly.newPlot(
+        "heatmapChart",
+        [trace],
+        layout,
+        {
+            responsive: true,
+            displayModeBar: false
+        }
+    );
+}
+</script>
+</body>
+</html>

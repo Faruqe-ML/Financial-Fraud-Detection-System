@@ -1,0 +1,269 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>Dashboard - Fraud Detection System</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chatbot.css' %}">
+</head>
+<body>
+
+<!-- TOPBAR -->
+{% include 'components/topbar.html' %}
+<div class="app-container">
+    <!-- SIDEBAR -->
+    {% include 'components/sidebar.html' %}
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content" id="mainContent">
+
+        <!-- DASHBOARD SECTION -->
+        <div id="section-dashboard" class="section active">
+            <!-- Stats Cards -->
+
+            {% include 'components/kpi.html' %}
+            <!-- Quick Actions -->
+
+            <div class="two-column">
+
+                <!-- ========================= -->
+                <!-- RECENT TRANSACTIONS -->
+                <!-- ========================= -->
+
+                <div class="card">
+
+                    <div class="card-header">
+
+                        <h3>
+                            <i class="fas fa-clock"></i>
+                            Recent Transactions
+                        </h3>
+
+                        <a href="#"
+                           class="view-link"
+                           onclick="showSection('transactions')">
+                            View All →
+                        </a>
+
+                    </div>
+
+
+                    <div class="card-body">
+
+                        <table class="table">
+
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                            </thead>
+
+
+                            <tbody>
+
+                            {% for transaction in metrics.recent_transactions %}
+
+                            <tr>
+
+                                <!-- Transaction ID -->
+                                <td>
+                                    #{{ transaction.transaction_id }}
+                                </td>
+
+
+                                <!-- Amount -->
+                                <td>
+                                    ₹{{ transaction.amount|floatformat:2 }}
+                                </td>
+
+
+                                <!-- Status -->
+                                <td>
+
+                                    {% if transaction.is_fraud %}
+
+                                    <span class="badge fraud">
+                                    Fraud
+                                </span>
+
+                                    {% else %}
+
+                                    <span class="badge safe">
+                                    Safe
+                                </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                            </tr>
+
+                            {% empty %}
+
+                            <tr>
+                                <td colspan="3">
+                                    No transactions found.
+                                </td>
+                            </tr>
+
+                            {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ========================= -->
+                <!-- RECENT ALERTS -->
+                <!-- ========================= -->
+
+                <div class="card">
+
+                    <div class="card-header">
+
+                        <h3>
+                            <i class="fas fa-bell"></i>
+                            Recent Alerts
+                        </h3>
+
+                        <a href="#"
+                           class="view-link"
+                           onclick="showSection('alerts')">
+                            View All →
+                        </a>
+
+                    </div>
+
+
+                    <div class="card-body">
+
+                        <div class="alert-list">
+
+                            {% for alert in metrics.recent_alerts %}
+
+                            <div class="alert
+                    {% if alert.severity == 'Critical' %}
+                        critical
+                    {% elif alert.severity == 'High' %}
+                        warning
+                    {% elif alert.severity == 'Medium' %}
+                        warning
+                    {% elif alert.severity == 'Low' %}
+                        info
+                    {% else %}
+                        info
+                    {% endif %}
+                ">
+
+
+                                <!-- Alert Icon -->
+
+                                {% if alert.severity == 'Critical' %}
+
+                                <i class="fas fa-bolt"></i>
+
+                                {% elif alert.severity == 'High' %}
+
+                                <i class="fas fa-exclamation"></i>
+
+                                {% elif alert.severity == 'Medium' %}
+
+                                <i class="fas fa-exclamation"></i>
+
+                                {% else %}
+
+                                <i class="fas fa-info"></i>
+
+                                {% endif %}
+
+
+                                <!-- Alert Details -->
+
+                                <div>
+
+                                    <div class="alert-title">
+                                        {{ alert.alert_type }}
+                                    </div>
+
+                                    <div class="alert-desc">
+                                        #{{ alert.transaction_id }}
+                                        -
+                                        Customer #{{ alert.customer_id }}
+                                    </div>
+
+                                </div>
+
+
+                                <!-- Alert Time -->
+
+                                <span class="alert-time">
+                        {{ alert.timestamp|date:"d M H:i" }}
+                    </span>
+
+
+                            </div>
+
+                            {% empty %}
+
+                            <div class="alert empty-alert">
+
+                                <div class="empty-alert-content">
+
+                                    <div class="empty-alert-icon">
+                                        <i class="fas fa-bell-slash"></i>
+                                    </div>
+
+                                    <div>
+                                        <div class="alert-title">
+                                            No Recent Alerts
+                                        </div>
+
+                                        <div class="alert-desc">
+                                            There are no new alerts to display.
+                                        </div>
+                                    </div>
+
+                                </div>
+
+
+                                {% endfor %}
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+        </div>
+    </main>
+</div>
+
+{% include 'components/chatbot.html' %}
+
+<script src="{% static 'js/chatbot.js' %}"></script>
+
+</body>
+</html>
+

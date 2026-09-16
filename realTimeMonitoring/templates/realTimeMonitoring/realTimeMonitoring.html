@@ -1,0 +1,904 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>Real-Time Monitoring - Fraud Detection System</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Plotly -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+
+    <link rel="stylesheet" href="{% static 'realTimeMonitoring/css/realTimeMonitoring.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chatbot.css' %}">
+</head>
+<body>
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+        <div class="logo">
+            <i class="fas fa-shield-halved"></i>
+            <span>Fraud<span>Detect</span></span>
+        </div>
+        <div class="topbar-right">
+            <div class="live-status">
+                <span class="live-dot"></span>
+                <span class="live-text">LIVE</span>
+            </div>
+            <span class="user-name">Real-Time Monitoring</span>
+            <button class="logout-btn" onclick="window.location.href='#'">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        {% include 'components/sidebar.html' %}
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <div class="page-header">
+                <div>
+                    <h1><i class="fas fa-broadcast"></i> Real-Time Monitoring</h1>
+                    <p>Live transaction monitoring and fraud detection alerts</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-pause" onclick="togglePause()">
+                        <i class="fas fa-pause"></i> Pause
+                    </button>
+                    <button class="btn-refresh" onclick="refreshData()">
+                        <i class="fas fa-sync"></i> Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- STATS CARDS -->
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-icon purple">
+                        <i class="fas fa-arrow-right-arrow-left"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="totalTx">{{ transaction.total }}</span>
+                        <span class="stat-label">Total Transactions</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="safeTx">{{ transaction.safe }}</span>
+                        <span class="stat-label">Safe</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon red">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="fraudTx">{{ transaction.fraud }}</span>
+                        <span class="stat-label">Fraud Detected</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon yellow">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="pendingTx">{{ transaction.pending }}</span>
+                        <span class="stat-label">Pending Review</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <i class="fas fa-percent"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="fraudRate">{{ transaction.fraud_rate }}%</span>
+                        <span class="stat-label">Fraud Rate</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- CHARTS GRID -->
+            <div class="charts-grid">
+                <!-- Chart 1: Real-Time Transaction Flow -->
+                <div class="chart-card full-width">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-line"></i> Real-Time Transaction Flow</h3>
+                        <span class="chart-badge">Live Stream</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="liveStreamChart" class="chart-container"></div>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Fraud Detection Rate -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-pie"></i> Fraud Detection Rate</h3>
+                        <span class="chart-badge">Donut</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="detectionRateChart" class="chart-container"></div>
+                    </div>
+                </div>
+
+                <!-- Chart 3: Transaction Velocity -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-bar"></i> Transaction Velocity</h3>
+                        <span class="chart-badge">Bar Chart</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="velocityChart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ALERT SECTION -->
+            <div class="alert-section">
+                <div class="alert-header">
+                    <h3><i class="fas fa-bell"></i> Live Alerts</h3>
+                    <span class="alert-count" id="alertCount">0 active alerts</span>
+                    <button class="btn-clear-alerts" onclick="clearAlerts()">
+                        <i class="fas fa-check-double"></i> Clear All
+                    </button>
+                </div>
+                <div class="alert-container" id="alertContainer">
+                    <!-- Alerts will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- RECENT TRANSACTIONS TABLE -->
+            <div class="table-container">
+                <div class="table-header">
+                    <span class="table-title"><i class="fas fa-list"></i> Recent Transactions</span>
+                    <span class="table-count" id="rowCount">Showing 0 records</span>
+                </div>
+                <div class="table-wrapper">
+                    <table class="transaction-table" id="transactionTable">
+                        <thead>
+                            <tr>
+                                <th>Transaction ID</th>
+                                <th>Customer ID</th>
+                                <th>Amount</th>
+                                <th>Type</th>
+                                <th>Location</th>
+                                <th>Status</th>
+                                <th>Time</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Data populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+    {% include 'components/chatbot.html' %}
+
+    <script src="{% static 'js/chatbot.js' %}"></script>
+    <script src="{% static 'js/real_time_monitoring.js' %}"></script>
+    {{ live_transactions|json_script:"live-transactions-data" }}
+    {{ detection_transactions|json_script:"detection-transactions-data" }}
+
+<script>
+ // =====================================================
+// GET LIVE TRANSACTION DATA FROM DJANGO
+// =====================================================
+
+const liveTransactions = JSON.parse(
+    document.getElementById(
+        "live-transactions-data"
+    ).textContent
+);
+
+console.log(
+    "Live Transactions:",
+    liveTransactions
+);
+
+
+// =====================================================
+// GET DETECTION RATE DATA FROM DJANGO
+// =====================================================
+
+const detectionTransactions = JSON.parse(
+    document.getElementById(
+        "detection-transactions-data"
+    ).textContent
+);
+
+console.log(
+    "Detection Transactions:",
+    detectionTransactions
+);
+
+
+// =====================================================
+// INITIALIZE ALL COMPONENTS
+// =====================================================
+
+updateLiveStreamChart(
+    liveTransactions
+);
+
+updateDetectionRateChart(
+    detectionTransactions
+);
+
+updateVelocityChart(
+    liveTransactions
+);
+
+updateTable(
+    liveTransactions
+);
+
+
+// =====================================================
+// LIVE STREAM CHART
+// =====================================================
+
+function updateLiveStreamChart(transactions) {
+
+    const trace = {
+
+        x: transactions.map(
+            t => t.time
+        ),
+
+        y: transactions.map(
+            t => t.amount
+        ),
+
+        type: 'scatter',
+
+        mode: 'lines+markers',
+
+        name: 'Transaction Amount',
+
+        line: {
+            color: '#6C3CE1',
+            width: 2
+        },
+
+        marker: {
+
+            color: transactions.map(t => {
+
+                if (t.status === 'fraud') {
+                    return '#FF6B6B';
+                }
+
+                if (t.status === 'suspicious') {
+                    return '#FFB432';
+                }
+
+                return '#00D4AA';
+
+            }),
+
+            size: 8
+        },
+
+        hovertemplate:
+            '<b>%{text}</b>' +
+            '<br>Amount: $%{y:,.2f}' +
+            '<br>Status: %{customdata}' +
+            '<extra></extra>',
+
+        text: transactions.map(
+            t => t.id
+        ),
+
+        customdata: transactions.map(
+            t => t.status
+        )
+    };
+
+
+    const layout = {
+
+        template: 'plotly_dark',
+
+        margin: {
+            l: 60,
+            r: 20,
+            t: 20,
+            b: 60
+        },
+
+        paper_bgcolor:
+            'rgba(0,0,0,0)',
+
+        plot_bgcolor:
+            'rgba(0,0,0,0)',
+
+        xaxis: {
+
+            gridcolor:
+                'rgba(255,255,255,0.05)',
+
+            tickfont: {
+                color: '#B8B8D0'
+            },
+
+            tickangle: -45
+        },
+
+        yaxis: {
+
+            gridcolor:
+                'rgba(255,255,255,0.05)',
+
+            tickfont: {
+                color: '#B8B8D0'
+            },
+
+            title: 'Amount ($)',
+
+            titlefont: {
+                color: '#B8B8D0'
+            },
+
+            tickprefix: '$'
+        },
+
+        hovermode: 'x unified'
+    };
+
+
+    Plotly.newPlot(
+        'liveStreamChart',
+        [trace],
+        layout,
+        {
+            responsive: true,
+            displayModeBar: false
+        }
+    );
+}
+
+
+// =====================================================
+// DETECTION RATE CHART
+// =====================================================
+
+function updateDetectionRateChart(
+    transactions
+) {
+
+    const safe = transactions.filter(
+        t => t.status === 'safe'
+    ).length;
+
+
+    const fraud = transactions.filter(
+        t => t.status === 'fraud'
+    ).length;
+
+
+    const pending = transactions.filter(
+        t =>
+            t.status === 'pending' ||
+            t.status === 'suspicious'
+    ).length;
+
+
+    console.log(
+        "Safe:",
+        safe
+    );
+
+    console.log(
+        "Fraud:",
+        fraud
+    );
+
+    console.log(
+        "Pending:",
+        pending
+    );
+
+
+    const trace = {
+
+        values: [
+            safe,
+            fraud,
+            pending
+        ],
+
+        labels: [
+            'Safe',
+            'Fraud',
+            'Pending'
+        ],
+
+        type: 'pie',
+
+        hole: 0.5,
+
+        marker: {
+
+            colors: [
+                '#00D4AA',
+                '#FF6B6B',
+                '#FFB432'
+            ]
+        },
+
+        textinfo:
+            'label+percent',
+
+        textposition:
+            'inside',
+
+        textfont: {
+
+            color: 'white',
+
+            size: 12
+        },
+
+        hovertemplate:
+            '<b>%{label}</b>' +
+            '<br>Count: %{value}' +
+            '<br>Percentage: %{percent}' +
+            '<extra></extra>'
+    };
+
+
+    const layout = {
+
+        template:
+            'plotly_dark',
+
+        margin: {
+
+            l: 20,
+            r: 20,
+            t: 20,
+            b: 20
+        },
+
+        paper_bgcolor:
+            'rgba(0,0,0,0)',
+
+        plot_bgcolor:
+            'rgba(0,0,0,0)',
+
+        showlegend: true,
+
+        legend: {
+
+            orientation: 'h',
+
+            y: -0.1,
+
+            font: {
+
+                color:
+                    '#B8B8D0'
+            }
+        },
+
+        annotations: [{
+
+            font: {
+
+                size: 14,
+
+                color: 'white'
+            },
+
+            showarrow: false,
+
+            text:
+                `Total<br>${transactions.length}`
+        }]
+    };
+
+
+    Plotly.newPlot(
+
+        'detectionRateChart',
+
+        [trace],
+
+        layout,
+
+        {
+
+            responsive: true,
+
+            displayModeBar: false
+        }
+    );
+}
+
+
+// =====================================================
+// VELOCITY CHART
+// =====================================================
+
+function updateVelocityChart(
+    transactions
+) {
+
+    const groups = {};
+
+
+    // ==========================================
+    // GROUP TRANSACTIONS BY MINUTE
+    // ==========================================
+
+    transactions.forEach(t => {
+
+        const minute =
+            t.time.substring(0, 5);
+
+
+        if (!groups[minute]) {
+
+            groups[minute] = 0;
+        }
+
+
+        groups[minute]++;
+    });
+
+
+    // ==========================================
+    // SORT TIME
+    // ==========================================
+
+    const times =
+        Object.keys(groups).sort();
+
+
+    const counts =
+        times.map(
+            time => groups[time]
+        );
+
+
+    // ==========================================
+    // BAR CHART
+    // ==========================================
+
+    const trace = {
+
+        x: times,
+
+        y: counts,
+
+        type: 'bar',
+
+        marker: {
+
+            color: counts.map(c => {
+
+                if (c > 10) {
+                    return '#FF6B6B';
+                }
+
+                if (c > 5) {
+                    return '#FFB432';
+                }
+
+                return '#00D4AA';
+
+            }),
+
+            opacity: 0.8
+        },
+
+        text: counts,
+
+        textposition:
+            'outside',
+
+        textfont: {
+
+            color: 'white'
+        },
+
+        hovertemplate:
+            '<b>%{x}</b>' +
+            '<br>Transactions: %{y}' +
+            '<extra></extra>'
+    };
+
+
+    // ==========================================
+    // LAYOUT
+    // ==========================================
+
+    const layout = {
+
+        template:
+            'plotly_dark',
+
+        margin: {
+
+            l: 50,
+            r: 20,
+            t: 20,
+            b: 60
+        },
+
+        paper_bgcolor:
+            'rgba(0,0,0,0)',
+
+        plot_bgcolor:
+            'rgba(0,0,0,0)',
+
+        xaxis: {
+
+            gridcolor:
+                'rgba(255,255,255,0.05)',
+
+            tickfont: {
+
+                color:
+                    '#B8B8D0'
+            },
+
+            tickangle: -45,
+
+            title: 'Time'
+        },
+
+        yaxis: {
+
+            gridcolor:
+                'rgba(255,255,255,0.05)',
+
+            tickfont: {
+
+                color:
+                    '#B8B8D0'
+            },
+
+            title:
+                'Transactions',
+
+            titlefont: {
+
+                color:
+                    '#B8B8D0'
+            },
+
+            rangemode:
+                'tozero'
+        }
+    };
+
+
+    // ==========================================
+    // RENDER
+    // ==========================================
+
+    Plotly.newPlot(
+
+        'velocityChart',
+
+        [trace],
+
+        layout,
+
+        {
+
+            responsive: true,
+
+            displayModeBar: false
+        }
+    );
+}
+
+
+// =====================================================
+// TRANSACTION TABLE
+// =====================================================
+
+function updateTable(
+    transactions
+) {
+
+    const tbody =
+        document.getElementById(
+            'tableBody'
+        );
+
+
+    const rowCount =
+        document.getElementById(
+            'rowCount'
+        );
+
+
+    const displayTx =
+        transactions.slice(
+            0,
+            20
+        );
+
+
+    // ==========================================
+    // NO TRANSACTIONS
+    // ==========================================
+
+    if (
+        displayTx.length === 0
+    ) {
+
+        tbody.innerHTML = `
+            <tr>
+
+                <td
+                    colspan="8"
+                    style="
+                        text-align:center;
+                        padding:40px;
+                        color:var(--text-muted);
+                    "
+                >
+
+                    <i
+                        class="fas fa-inbox"
+                        style="
+                            font-size:40px;
+                            display:block;
+                            margin-bottom:10px;
+                        "
+                    ></i>
+
+                    No transactions available
+
+                </td>
+
+            </tr>
+        `;
+
+
+        rowCount.textContent =
+            'Showing 0 records';
+
+
+        return;
+    }
+
+
+    // ==========================================
+    // CREATE TABLE ROWS
+    // ==========================================
+
+    tbody.innerHTML =
+        displayTx.map(tx => {
+
+            const statusClass =
+                String(
+                    tx.status || 'safe'
+                ).toLowerCase();
+
+
+            return `
+                <tr>
+
+                    <!-- TRANSACTION ID -->
+
+                    <td>
+
+                        <span
+                            class="tx-id"
+                        >
+                            ${tx.id}
+                        </span>
+
+                    </td>
+
+
+                    <!-- CUSTOMER -->
+
+                    <td>
+                        ${tx.customer || 'Unknown'}
+                    </td>
+
+
+                    <!-- AMOUNT -->
+
+                    <td class="amount">
+
+                        $${Number(
+                            tx.amount || 0
+                        ).toLocaleString(
+                            undefined,
+                            {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }
+                        )}
+
+                    </td>
+
+
+                    <!-- TYPE -->
+
+                    <td>
+                        ${tx.type || 'Unknown'}
+                    </td>
+
+
+                    <!-- LOCATION -->
+
+                    <td>
+                        ${tx.location || 'Unknown'}
+                    </td>
+
+
+                    <!-- STATUS -->
+
+                    <td>
+
+                        <span
+                            class="status-badge ${statusClass}"
+                        >
+                            ${tx.status || 'safe'}
+                        </span>
+
+                    </td>
+
+
+                    <!-- TIME -->
+
+                    <td>
+                        ${tx.time || '--'}
+                    </td>
+
+
+                    <!-- ACTION -->
+
+                    <td>
+
+                        <button
+                            class="action-btn"
+                            onclick="viewTransaction('${tx.id}')"
+                        >
+
+                            <i
+                                class="fas fa-eye"
+                            ></i>
+
+                        </button>
+
+                    </td>
+
+                </tr>
+            `;
+
+        }).join('');
+
+
+    // ==========================================
+    // ROW COUNT
+    // ==========================================
+
+    rowCount.textContent =
+        `Showing ${displayTx.length} records`;
+}
+</script>
+</body>
+</html>

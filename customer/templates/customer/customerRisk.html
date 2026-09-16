@@ -1,0 +1,1043 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>Customer Risk Analysis - Fraud Detection System</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Plotly -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+
+    <link rel="stylesheet" href="{% static 'customer/css/customerRisk.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chatbot.css' %}">
+</head>
+<body>
+
+    <!-- TOPBAR -->
+    {% include 'components/topbar.html' %}
+
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        {% include 'components/sidebar.html' %}
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <div class="page-header">
+                <div>
+                    <h1><i class="fas fa-user-shield"></i> Customer Risk Analysis</h1>
+                    <p>Analyze customer risk scores, segments, and fraud patterns</p>
+                </div>
+
+            </div>
+
+            <!-- FILTERS -->
+
+
+            <!-- STATS CARDS -->
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-icon purple">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="totalCustomers">{{ total_customer }}</span>
+                        <span class="stat-label">Total Customers</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <i class="fas fa-shield-check"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="lowRisk">{{ low_risk }}</span>
+                        <span class="stat-label">Low Risk</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon yellow">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="mediumRisk">{{ medium_risk }}</span>
+                        <span class="stat-label">Medium Risk</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon red">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="highRisk">{{ high_risk }}</span>
+                        <span class="stat-label">High Risk</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="criticalRisk">{{ critical_risk }}</span>
+                        <span class="stat-label">Critical Risk</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <i class="fas fa-arrow-up"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="avgRiskScore">{{ average_risk_score }}%</span>
+                        <span class="stat-label">Average Risk Score</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CHARTS GRID -->
+            <div class="charts-grid">
+                <!-- Chart 1: Risk Distribution -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-pie"></i> Risk Distribution</h3>
+                        <span class="chart-badge">Pie Chart</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="riskDistributionChart" class="chart-container"></div>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Risk by Segment -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-bar"></i> Risk by Segment</h3>
+                        <span class="chart-badge">Grouped Bar</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="segmentRiskChart" class="chart-container"></div>
+                    </div>
+                </div>
+
+                <!-- Chart 3: Risk Score Histogram -->
+                <div class="chart-card full-width">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-histogram"></i> Risk Score Distribution</h3>
+                        <span class="chart-badge">Histogram</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="riskHistogramChart" class="chart-container"></div>
+                    </div>
+                </div>
+
+                <!-- Chart 4: Fraud Count by Customer -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-scatter"></i> Top Fraud Customers</h3>
+                        <span class="chart-badge">Bar Chart</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="topFraudCustomersChart" class="chart-container"></div>
+                    </div>
+                </div>
+
+                <!-- Chart 5: Segment Distribution -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-doughnut"></i> Customer Segments</h3>
+                        <span class="chart-badge">Doughnut</span>
+                    </div>
+                    <div class="chart-body">
+                        <div id="segmentDistributionChart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CUSTOMER TABLE -->
+            <div class="table-container">
+                <div class="table-header">
+                    <span class="table-title"><i class="fas fa-list"></i> Customers</span>
+                    <span class="table-count" id="rowCount">Showing 0 records</span>
+                </div>
+                <div class="table-wrapper">
+                    <table class="customer-table" id="customerTable">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable('customer_id')">Customer ID <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTable('full_name')">Name <i class="fas fa-sort"></i></th>
+
+                                <th onclick="sortTable('segment')">Segment <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTable('risk_score')">Risk Score <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTable('risk_level')">Risk Level <i class="fas fa-sort"></i></th>
+                                <th onclick="sortTable('account_age')">Account Age <i class="fas fa-sort"></i></th>
+                                <th>Fraud Count</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Data populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination">
+                    <div class="pagination-info">
+                        <span id="pageInfo">Showing 1-10 of 0</span>
+                        <select id="pageSize" onchange="changePageSize()">
+                            <option value="10">10 per page</option>
+                            <option value="25">25 per page</option>
+                            <option value="50">50 per page</option>
+                        </select>
+                    </div>
+                    <div class="pagination-buttons">
+                        <button onclick="prevPage()" id="prevBtn"><i class="fas fa-chevron-left"></i></button>
+                        <span id="pageNumbers"></span>
+                        <button onclick="nextPage()" id="nextBtn"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    {% include 'components/chatbot.html' %}
+
+<script src="{% static 'js/chatbot.js' %}"></script>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+{{ risk_distribution_data|json_script:"risk-distribution-data" }}
+    {{ segment_risk_data|json_script:"segment-risk-data" }}
+    {{ risk_histogram_data|json_script:"risk-histogram-data" }}
+    {{ top_fraud_customers|json_script:"top-fraud-customers-data" }}
+    {{ segment_distribution_data|json_script:"segment-distribution-data" }}
+    {{ customer_data|json_script:"customer-data" }}
+
+
+
+<script>
+    // ============================================================
+// 1. RISK DISTRIBUTION CHART - DONUT CHART
+// ============================================================
+
+function loadRiskDistributionChart() {
+    const element = document.getElementById("risk-distribution-data");
+
+    if (!element) {
+        console.error("ERROR: risk-distribution-data element not found");
+        return;
+    }
+
+    console.log("RAW RISK JSON:", element.textContent);
+
+    try {
+        const data = JSON.parse(element.textContent);
+        console.log("RISK DATA:", data);
+        console.log("LABELS:", data.labels);
+        console.log("VALUES:", data.values);
+
+        updateRiskDistributionChart(data);
+
+    } catch (error) {
+        console.error("RISK JSON PARSE ERROR:", error);
+    }
+}
+
+function updateRiskDistributionChart(data) {
+    console.log("Updating Risk Distribution Chart...");
+
+    const chart = document.getElementById("riskDistributionChart");
+
+    if (!chart) {
+        console.error("ERROR: riskDistributionChart NOT FOUND");
+        return;
+    }
+
+    if (!data || !data.labels || !data.values) {
+        console.error("ERROR: Invalid risk distribution data", data);
+        return;
+    }
+
+    const trace = {
+        values: data.values,
+        labels: data.labels,
+        type: "pie",
+        hole: 0.45,
+        marker: {
+            colors: data.colors || ['#00D4AA', '#FFB432', '#FF8A8A', '#FF6B6B']
+        },
+        textinfo: "label+percent",
+        textposition: "inside",
+        textfont: {
+            color: "#FFFFFF",
+            size: 12
+        },
+        hovertemplate: "<b>%{label}</b><br>Customers: %{value:,}<br>Percentage: %{percent}<extra></extra>"
+    };
+
+    const layout = {
+        template: "plotly_dark",
+        margin: { l: 20, r: 20, t: 20, b: 20 },
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(0,0,0,0)",
+        showlegend: true,
+        legend: {
+            orientation: "h",
+            y: -0.1,
+            font: {
+                color: "#B8B8D0",
+                size: 12
+            }
+        }
+    };
+
+    Plotly.newPlot("riskDistributionChart", [trace], layout, {
+        responsive: true,
+        displayModeBar: false
+    })
+    .then(function() {
+        console.log("Risk Distribution Chart CREATED");
+    })
+    .catch(function(error) {
+        console.error("PLOTLY ERROR:", error);
+    });
+}
+
+// ============================================================
+// 2. SEGMENT RISK CHART - GROUPED BAR CHART
+// ============================================================
+
+function loadSegmentRiskChart() {
+    const element = document.getElementById("segment-risk-data");
+
+    if (!element) {
+        console.error("segment-risk-data element not found");
+        return;
+    }
+
+    const chart = document.getElementById("segmentRiskChart");
+
+    if (!chart) {
+        console.error("segmentRiskChart element not found");
+        return;
+    }
+
+    try {
+        const data = JSON.parse(element.textContent);
+        console.log("SEGMENT RISK DATA:", data);
+
+        if (!Array.isArray(data)) {
+            console.error("Segment risk data is not an array", data);
+            return;
+        }
+
+        if (data.length === 0) {
+            console.warn("Segment risk data is empty");
+            return;
+        }
+
+        updateSegmentRiskChart(data);
+
+    } catch (error) {
+        console.error("SEGMENT RISK JSON ERROR:", error);
+    }
+}
+
+function updateSegmentRiskChart(data) {
+    const segments = data.map(item => item.segment);
+
+    const lowRisk = {
+        x: segments,
+        y: data.map(item => item.low || 0),
+        type: "bar",
+        name: "Low Risk",
+        marker: { color: "#00D4AA" },
+        hovertemplate: "<b>%{x}</b><br>Low Risk: %{y}<extra></extra>"
+    };
+
+    const mediumRisk = {
+        x: segments,
+        y: data.map(item => item.medium || 0),
+        type: "bar",
+        name: "Medium Risk",
+        marker: { color: "#FFB432" },
+        hovertemplate: "<b>%{x}</b><br>Medium Risk: %{y}<extra></extra>"
+    };
+
+    const highRisk = {
+        x: segments,
+        y: data.map(item => item.high || 0),
+        type: "bar",
+        name: "High Risk",
+        marker: { color: "#FF8A8A" },
+        hovertemplate: "<b>%{x}</b><br>High Risk: %{y}<extra></extra>"
+    };
+
+    const criticalRisk = {
+        x: segments,
+        y: data.map(item => item.critical || 0),
+        type: "bar",
+        name: "Critical Risk",
+        marker: { color: "#FF6B6B" },
+        hovertemplate: "<b>%{x}</b><br>Critical Risk: %{y}<extra></extra>"
+    };
+
+    const traces = [lowRisk, mediumRisk, highRisk, criticalRisk];
+
+    const layout = {
+        template: "plotly_dark",
+        title: {
+            text: "Risk by Customer Segment",
+            font: { color: "#FFFFFF", size: 16 }
+        },
+        barmode: "group",
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(0,0,0,0)",
+        margin: { l: 60, r: 20, t: 60, b: 70 },
+        xaxis: {
+            title: "Customer Segment",
+            gridcolor: "rgba(255,255,255,0.05)",
+            tickfont: { color: "#B8B8D0" }
+        },
+        yaxis: {
+            title: "Number of Customers",
+            gridcolor: "rgba(255,255,255,0.05)",
+            tickfont: { color: "#B8B8D0" }
+        },
+        legend: {
+            orientation: "h",
+            y: -0.2,
+            font: { color: "#B8B8D0" }
+        }
+    };
+
+    Plotly.newPlot("segmentRiskChart", traces, layout, {
+        responsive: true,
+        displayModeBar: false
+    });
+}
+
+// ============================================================
+// 3. RISK HISTOGRAM CHART
+// ============================================================
+
+function loadRiskHistogramChart() {
+    const element = document.getElementById("risk-histogram-data");
+
+    if (!element) {
+        console.error("Risk histogram data not found");
+        return;
+    }
+
+    try {
+        const data = JSON.parse(element.textContent);
+        console.log("RISK HISTOGRAM DATA:", data);
+        updateRiskHistogramChart(data);
+    } catch (error) {
+        console.error("RISK HISTOGRAM JSON ERROR:", error);
+    }
+}
+
+function updateRiskHistogramChart(data) {
+    const trace = {
+        x: data.map(d => d.label),
+        y: data.map(d => d.count),
+        type: 'bar',
+        marker: {
+            color: data.map(d => {
+                const val = parseFloat(d.label.replace('%', ''));
+                if (val < 25) return '#00D4AA';
+                if (val < 50) return '#FFB432';
+                if (val < 75) return '#FF8A8A';
+                return '#FF6B6B';
+            }),
+            opacity: 0.8
+        },
+        text: data.map(d => d.count),
+        textposition: 'outside',
+        textfont: { color: 'white' },
+        hovertemplate: '<b>%{x}</b><br>Customers: %{y:,}<extra></extra>'
+    };
+
+    const layout = {
+        template: 'plotly_dark',
+        margin: { l: 50, r: 20, t: 20, b: 60 },
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        xaxis: {
+            gridcolor: 'rgba(255,255,255,0.05)',
+            tickfont: { color: '#B8B8D0' },
+            title: 'Risk Score Range',
+            titlefont: { color: '#B8B8D0' }
+        },
+        yaxis: {
+            gridcolor: 'rgba(255,255,255,0.05)',
+            tickfont: { color: '#B8B8D0' },
+            title: 'Number of Customers',
+            titlefont: { color: '#B8B8D0' }
+        }
+    };
+
+    Plotly.newPlot('riskHistogramChart', [trace], layout, {
+        responsive: true,
+        displayModeBar: false
+    });
+}
+
+// ============================================================
+// 4. TOP FRAUD CUSTOMERS CHART - HORIZONTAL BAR
+// ============================================================
+
+function loadTopFraudCustomersChart() {
+    const element = document.getElementById("top-fraud-customers-data");
+
+    if (!element) {
+        console.error("top-fraud-customers-data not found");
+        return;
+    }
+
+    try {
+        const data = JSON.parse(element.textContent);
+        console.log("TOP FRAUD CUSTOMERS:", data);
+        updateTopFraudCustomersChart(data);
+    } catch (error) {
+        console.error("TOP FRAUD CUSTOMERS JSON ERROR:", error);
+    }
+}
+
+function updateTopFraudCustomersChart(data) {
+    const trace = {
+        y: data.map(d => d.customer_name || d.customer_id),
+        x: data.map(d => d.fraud_count || 0),
+        type: 'bar',
+        orientation: 'h',
+        marker: {
+            color: '#FF6B6B',
+            opacity: 0.8
+        },
+        text: data.map(d => (d.fraud_count || 0) + ' frauds'),
+        textposition: 'outside',
+        textfont: { color: 'white' },
+        customdata: data.map(d => d.total_amount || 0),
+        hovertemplate: '<b>%{y}</b><br>Fraud Count: %{x}<br>Amount: $%{customdata:,.2f}<extra></extra>'
+    };
+
+    const layout = {
+        template: 'plotly_dark',
+        margin: { l: 120, r: 60, t: 20, b: 50 },
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        xaxis: {
+            gridcolor: 'rgba(255,255,255,0.05)',
+            tickfont: { color: '#B8B8D0' },
+            title: 'Fraud Count',
+            titlefont: { color: '#B8B8D0' }
+        },
+        yaxis: {
+            gridcolor: 'rgba(255,255,255,0.05)',
+            tickfont: { color: '#B8B8D0' },
+            automargin: true
+        }
+    };
+
+    Plotly.newPlot('topFraudCustomersChart', [trace], layout, {
+        responsive: true,
+        displayModeBar: false
+    });
+}
+
+// ============================================================
+// 5. SEGMENT DISTRIBUTION CHART - DOUGHNUT CHART
+// ============================================================
+
+function loadSegmentDistributionChart() {
+    const element = document.getElementById("segment-distribution-data");
+
+    if (!element) {
+        console.error("segment-distribution-data NOT FOUND");
+        return;
+    }
+
+    try {
+        const data = JSON.parse(element.textContent);
+        console.log("SEGMENT DISTRIBUTION DATA:", data);
+        updateSegmentDistributionChart(data);
+    } catch (error) {
+        console.error("SEGMENT DISTRIBUTION JSON ERROR:", error);
+    }
+}
+
+function updateSegmentDistributionChart(data) {
+    const total = data.values.reduce((sum, value) => sum + Number(value), 0);
+
+    const trace = {
+        values: data.values,
+        labels: data.labels,
+        type: 'pie',
+        hole: 0.5,
+        marker: {
+            colors: data.colors || ['#3296FF', '#FFB432', '#00D4AA', '#8B6FE8']
+        },
+        textinfo: 'label+percent',
+        hoverinfo: 'label+value+percent',
+        textposition: 'inside',
+        textfont: {
+            color: 'white',
+            size: 12
+        },
+        hovertemplate: '<b>%{label}</b><br>Customers: %{value:,}<br>Percentage: %{percent}<extra></extra>'
+    };
+
+    const layout = {
+        template: 'plotly_dark',
+        margin: { l: 20, r: 20, t: 20, b: 20 },
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        showlegend: true,
+        legend: {
+            orientation: 'h',
+            y: -0.1,
+            font: { color: '#B8B8D0' }
+        },
+        annotations: [{
+            font: {
+                size: 16,
+                color: 'white'
+            },
+            showarrow: false,
+            text: `Total<br>${total.toLocaleString()}`
+        }]
+    };
+
+    Plotly.newPlot('segmentDistributionChart', [trace], layout, {
+        responsive: true,
+        displayModeBar: false
+    });
+}
+
+// ============================================================
+// 6. CUSTOMER TABLE
+// ============================================================
+
+let customerTableData = [];
+let customerTableFilteredData = [];
+let customerTableCurrentPage = 1;
+let customerTablePageSize = 10;
+let customerTableSortColumn = "";
+let customerTableSortAsc = true;
+
+// ============================================================
+// LOAD CUSTOMER DATA
+// ============================================================
+
+function loadCustomerData() {
+    const element = document.getElementById("customer-data");
+
+    if (!element) {
+        console.error("customer-data NOT FOUND");
+        return;
+    }
+
+    try {
+        const data = JSON.parse(element.textContent);
+        console.log("CUSTOMER DATA:", data);
+
+        if (!Array.isArray(data)) {
+            console.error("Customer data must be an array");
+            customerTableData = [];
+        } else {
+            customerTableData = data;
+        }
+
+        customerTableFilteredData = [...customerTableData];
+        customerTableCurrentPage = 1;
+
+        renderCustomerTable();
+        updateCustomerTablePagination();
+
+    } catch (error) {
+        console.error("CUSTOMER JSON PARSE ERROR:", error);
+        customerTableData = [];
+        customerTableFilteredData = [];
+        renderCustomerTable();
+        updateCustomerTablePagination();
+    }
+}
+
+// ============================================================
+// RENDER CUSTOMER TABLE
+// ============================================================
+
+function renderCustomerTable() {
+    const start = (customerTableCurrentPage - 1) * customerTablePageSize;
+    const end = start + customerTablePageSize;
+    const pageData = customerTableFilteredData.slice(start, end);
+    const tbody = document.getElementById("tableBody");
+
+    if (!tbody) {
+        console.error("tableBody NOT FOUND");
+        return;
+    }
+
+    if (pageData.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="9" style="text-align:center; padding:40px; color:#7A7A9A;">
+                    <i class="fas fa-users" style="font-size:40px; display:block; margin-bottom:10px;"></i>
+                    No customers found
+                </td>
+            </tr>
+        `;
+        document.getElementById("rowCount").textContent = "Showing 0 records";
+        return;
+    }
+
+    tbody.innerHTML = pageData.map(customer => {
+        const riskLevel = String(customer.risk_level || "").toLowerCase();
+        const segment = String(customer.segment || "");
+        const segmentClass = segment.toLowerCase().replace(/\s+/g, "-");
+
+        return `
+            <tr>
+                <td><span class="customer-id">${customer.customer_id || ""}</span></td>
+                <td><span class="customer-name">${customer.full_name || ""}</span></td>
+                <td><span class="segment-badge ${segmentClass}">${segment}</span></td>
+                <td><span class="risk-score ${riskLevel}">${customer.risk_score ?? 0}%</span></td>
+                <td><span class="risk-badge ${riskLevel}">${customer.risk_level || ""}</span></td>
+                <td>${customer.account_age ?? 0} days</td>
+                <td>${customer.fraud_count ?? 0}</td>
+                <td>
+                    <button type="button" class="action-btn" onclick="viewCustomer('${customer.customer_id}')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join("");
+
+    document.getElementById("rowCount").textContent = `Showing ${customerTableFilteredData.length} records`;
+}
+
+// ============================================================
+// TABLE PAGINATION
+// ============================================================
+
+function updateCustomerTablePagination() {
+    const total = customerTableFilteredData.length;
+    const totalPages = Math.ceil(total / customerTablePageSize);
+
+    let start = 0;
+    let end = 0;
+    if (total > 0) {
+        start = (customerTableCurrentPage - 1) * customerTablePageSize + 1;
+        end = Math.min(customerTableCurrentPage * customerTablePageSize, total);
+    }
+
+    const pageInfo = document.getElementById("pageInfo");
+    if (pageInfo) {
+        pageInfo.textContent = `Showing ${start}-${end} of ${total}`;
+    }
+
+    const prevBtn = document.getElementById("prevBtn");
+    if (prevBtn) {
+        prevBtn.disabled = customerTableCurrentPage <= 1;
+    }
+
+    const nextBtn = document.getElementById("nextBtn");
+    if (nextBtn) {
+        nextBtn.disabled = customerTableCurrentPage >= totalPages;
+    }
+
+    const pageNumbers = document.getElementById("pageNumbers");
+    if (!pageNumbers) return;
+
+    if (totalPages === 0) {
+        pageNumbers.innerHTML = "";
+        return;
+    }
+
+    let html = "";
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, customerTableCurrentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage < maxVisiblePages - 1) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    if (startPage > 1) {
+        html += `<button type="button" onclick="goToCustomerTablePage(1)">1</button>`;
+        if (startPage > 2) html += `<span>...</span>`;
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        html += `<button type="button" onclick="goToCustomerTablePage(${i})" class="${i === customerTableCurrentPage ? 'active' : ''}">${i}</button>`;
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) html += `<span>...</span>`;
+        html += `<button type="button" onclick="goToCustomerTablePage(${totalPages})">${totalPages}</button>`;
+    }
+
+    pageNumbers.innerHTML = html;
+}
+
+function goToCustomerTablePage(page) {
+    const totalPages = Math.ceil(customerTableFilteredData.length / customerTablePageSize);
+    if (page < 1 || page > totalPages) return;
+    customerTableCurrentPage = page;
+    renderCustomerTable();
+    updateCustomerTablePagination();
+}
+
+function prevCustomerTablePage() {
+    if (customerTableCurrentPage <= 1) return;
+    customerTableCurrentPage--;
+    renderCustomerTable();
+    updateCustomerTablePagination();
+}
+
+function nextCustomerTablePage() {
+    const totalPages = Math.ceil(customerTableFilteredData.length / customerTablePageSize);
+    if (customerTableCurrentPage >= totalPages) return;
+    customerTableCurrentPage++;
+    renderCustomerTable();
+    updateCustomerTablePagination();
+}
+
+function changeCustomerTablePageSize() {
+    const select = document.getElementById("pageSize");
+    if (!select) return;
+    customerTablePageSize = parseInt(select.value, 10);
+    customerTableCurrentPage = 1;
+    renderCustomerTable();
+    updateCustomerTablePagination();
+}
+
+// ============================================================
+// CUSTOMER FILTERS
+// ============================================================
+
+function applyCustomerFilters() {
+    const searchInput = document.getElementById("searchInput");
+    const segmentFilter = document.getElementById("segmentFilter");
+    const riskFilter = document.getElementById("riskFilter");
+
+    const search = searchInput ? searchInput.value.trim().toLowerCase() : "";
+    const selectedSegment = segmentFilter ? segmentFilter.value.trim().toLowerCase() : "";
+    const selectedRisk = riskFilter ? riskFilter.value.trim().toLowerCase() : "";
+
+    customerTableFilteredData = customerTableData.filter(customer => {
+        const customerId = String(customer.customer_id || "").toLowerCase();
+        const customerName = String(customer.full_name || "").toLowerCase();
+        const customerEmail = String(customer.email || "").toLowerCase();
+        const customerSegment = String(customer.segment || "").toLowerCase();
+        const customerRisk = String(customer.risk_level || "").toLowerCase();
+
+        const matchesSearch = !search || customerId.includes(search) || customerName.includes(search) || customerEmail.includes(search);
+        const matchesSegment = !selectedSegment || customerSegment === selectedSegment;
+        const matchesRisk = !selectedRisk || customerRisk === selectedRisk;
+
+        return matchesSearch && matchesSegment && matchesRisk;
+    });
+
+    customerTableCurrentPage = 1;
+    renderCustomerTable();
+    updateCustomerTablePagination();
+}
+
+function clearCustomerFilters() {
+    const searchInput = document.getElementById("searchInput");
+    const segmentFilter = document.getElementById("segmentFilter");
+    const riskFilter = document.getElementById("riskFilter");
+
+    if (searchInput) searchInput.value = "";
+    if (segmentFilter) segmentFilter.value = "";
+    if (riskFilter) riskFilter.value = "";
+
+    customerTableFilteredData = [...customerTableData];
+    customerTableCurrentPage = 1;
+    renderCustomerTable();
+    updateCustomerTablePagination();
+}
+
+// ============================================================
+// SORT CUSTOMER TABLE
+// ============================================================
+
+function sortCustomerTable(column) {
+    if (customerTableSortColumn === column) {
+        customerTableSortAsc = !customerTableSortAsc;
+    } else {
+        customerTableSortColumn = column;
+        customerTableSortAsc = true;
+    }
+
+    customerTableFilteredData.sort(function(a, b) {
+        let valueA = a[column];
+        let valueB = b[column];
+
+        if (valueA === null || valueA === undefined) valueA = "";
+        if (valueB === null || valueB === undefined) valueB = "";
+
+        const numberA = Number(valueA);
+        const numberB = Number(valueB);
+
+        if (valueA !== "" && valueB !== "" && !isNaN(numberA) && !isNaN(numberB)) {
+            return customerTableSortAsc ? numberA - numberB : numberB - numberA;
+        }
+
+        valueA = String(valueA).toLowerCase().trim();
+        valueB = String(valueB).toLowerCase().trim();
+
+        if (valueA < valueB) return customerTableSortAsc ? -1 : 1;
+        if (valueA > valueB) return customerTableSortAsc ? 1 : -1;
+        return 0;
+    });
+
+    customerTableCurrentPage = 1;
+    renderCustomerTable();
+    updateCustomerTablePagination();
+}
+
+// ============================================================
+// VIEW CUSTOMER
+// ============================================================
+
+function viewCustomer(customerId) {
+    if (!customerId) {
+        console.error("Customer ID is missing");
+        return;
+    }
+
+    console.log("VIEW CUSTOMER:", customerId);
+
+    const customer = customerTableData.find(item => String(item.customer_id) === String(customerId));
+
+    if (!customer) {
+        console.error("Customer not found:", customerId);
+        return;
+    }
+
+    console.log("SELECTED CUSTOMER:", customer);
+
+    // Navigate to customer detail page
+    window.location.href = `/customer/${encodeURIComponent(customerId)}/`;
+}
+
+// ============================================================
+// EXPORT DATA
+// ============================================================
+
+function exportCustomerData() {
+    if (customerTableFilteredData.length === 0) {
+        alert('No data to export');
+        return;
+    }
+
+    const headers = ['Customer ID', 'Name', 'Email', 'Segment', 'Risk Score', 'Risk Level', 'Account Age', 'Fraud Count'];
+    const rows = customerTableFilteredData.map(c => [
+        c.customer_id || '',
+        c.full_name || '',
+        c.email || '',
+        c.segment || '',
+        c.risk_score || 0,
+        c.risk_level || '',
+        c.account_age || 0,
+        c.fraud_count || 0
+    ]);
+
+    let csv = headers.join(',') + '\n';
+    rows.forEach(row => {
+        csv += row.join(',') + '\n';
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `customers_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// ============================================================
+// REFRESH DATA
+// ============================================================
+
+function refreshData() {
+    const btn = document.querySelector('.btn-refresh');
+    if (btn) {
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+        btn.disabled = true;
+    }
+
+    location.reload();
+}
+
+// ============================================================
+// RESIZE CHARTS
+// ============================================================
+
+let resizeTimeout;
+
+window.addEventListener('resize', function() {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(function() {
+        const chartIds = ['riskDistributionChart', 'segmentRiskChart', 'riskHistogramChart', 'topFraudCustomersChart', 'segmentDistributionChart'];
+        chartIds.forEach(function(id) {
+            const el = document.getElementById(id);
+            if (el && typeof Plotly !== 'undefined') {
+                Plotly.Plots.resize(el);
+            }
+        });
+    }, 300);
+});
+
+// ============================================================
+// KEYBOARD SHORTCUTS
+// ============================================================
+
+document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.key === 'r') {
+        e.preventDefault();
+        refreshData();
+    }
+});
+
+// ============================================================
+// INITIALIZE ALL CHARTS AND TABLE
+// ============================================================
+
+document.addEventListener("DOMContentLoaded", function() {
+    console.log("Customer Risk Analysis Page Loaded");
+
+    // Load charts
+    loadRiskDistributionChart();
+    loadSegmentRiskChart();
+    loadRiskHistogramChart();
+    loadTopFraudCustomersChart();
+    loadSegmentDistributionChart();
+
+    // Load table
+    loadCustomerData();
+
+    console.log("✅ All charts and table initialized");
+});
+
+// ============================================================
+// LOGOUT FUNCTION
+// ============================================================
+
+function logoutUser() {
+    if (confirm('Are you sure you want to logout?')) {
+        window.location.href = '/logout/';
+    }
+}
+
+</script>
+
+</body>
+</html>

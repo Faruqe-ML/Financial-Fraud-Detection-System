@@ -1,0 +1,263 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>New Transaction - Fraud Detection System</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'transaction/css/transaction.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chatbot.css' %}">
+
+</head>
+<body>
+
+<!-- TOPBAR -->
+{% include 'components/topbar.html' %}
+
+<div class="app-container">
+    <!-- SIDEBAR -->
+    {% include 'components/sidebar.html' %}
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <div class="page-header">
+            <h1><i class="fas fa-plus-circle"></i> New Transaction</h1>
+            <p>Enter transaction details and check for fraud prediction</p>
+        </div>
+
+        <div class="transaction-container">
+            <!-- Transaction Form -->
+            <div class="transaction-form-card">
+                <form id="transactionForm" method="POST" action="{% url 'transaction:fraud_detection' full_name=full_name %}">
+                    {% csrf_token %}
+
+                    <!-- Customer Information -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-user"></i> Customer Information</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+
+                                <label>
+                                    <i class="fas fa-id-card"></i>
+                                    Transaction ID
+
+                                    <span class="info-tip">
+            <i class="fas fa-question-circle"></i>
+            <span class="tip-text">
+                Enter the unique transaction ID from your
+                payment receipt or bank statement.
+                <b>Ex- TX_00000000 - TX_00099999</b>
+            </span>
+        </span>
+                                </label>
+
+                                <input type="text"
+                                       name="transaction_id"
+                                       id="transactionId"
+                                       placeholder="Enter Transaction ID"
+                                       required>
+
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-id-card"></i> Customer ID</label>
+                                <input type="text" name="customer_id" id="customerId"
+                                       placeholder="Enter Customer ID" required readonly>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i class="fas fa-envelope"></i> Email</label>
+                                <input type="email" name="email" id="customerEmail"
+                                       placeholder="customer@email.com" required>
+                            </div>
+                            <div class="form-group"><label> <i class="fas fa-clock"></i> Transaction Time </label>
+                                <input type="text" name="timestamp" id="transactionTime" readonly></div>
+                        </div>
+                    </div>
+
+                    <!-- Transaction Details -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-credit-card"></i> Transaction Details</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i class="fas fa-dollar-sign"></i> Amount</label>
+                                <input type="number" name="amount" id="amount"
+                                       placeholder="0.00" step="0.01" min="0.01" required readonly>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-tag"></i> Transaction Type</label>
+                                <select name="transaction_type" id="transactionType" required readonly>
+                                    <option value="online">Online</option>
+                                    <option value="in-store">In-Store</option>
+                                    <option value="atm">ATM</option>
+                                    <option value="wire">Wire Transfer</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i class="fas fa-map-marker-alt"></i> Location</label>
+                                <select name="location" id="location" required readonly>
+                                    <option value="US">United States</option>
+                                    <option value="UK">United Kingdom</option>
+                                    <option value="IN">India</option>
+                                    <option value="SG">Singapore</option>
+                                    <option value="AU">Australia</option>
+                                    <option value="RU">Russia</option>
+                                    <option value="CN">China</option>
+                                    <option value="NG">Nigeria</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-store"></i> Merchant Category</label>
+                                <select name="merchant_category" id="merchantCategory">
+                                    <option value="Retail">Retail</option>
+                                    <option value="E-commerce">E-commerce</option>
+                                    <option value="Travel">Travel</option>
+                                    <option value="Food">Food</option>
+                                    <option value="Entertainment">Entertainment</option>
+                                    <option value="Services">Services</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i class="fas fa-laptop"></i> Device ID</label>
+                                <input type="text" name="device_id" id="deviceId"
+                                       placeholder="Enter Device ID" readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label><i class="fas fa-network-wired"></i> IP Address</label>
+                                <input type="text" name="ip_address" id="ipAddress"
+                                       placeholder="192.168.1.1" readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label><i class="fas fa-credit-card"></i> Card Present</label>
+                                <select name="card_present" id="cardPresent" required readonly>
+                                    <option value="" selected disabled>Select</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" onclick="resetForm()">
+                            <i class="fas fa-undo"></i> Reset
+                        </button>
+                        <button type="submit" class="btn-primary" id="predictBtn">
+                            <i class="fas fa-robot"></i> Predict & Submit
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Prediction Results -->
+            <div class="prediction-results" id="predictionResults" style="display:none;">
+                <div class="result-card">
+                    <div class="result-header">
+                        <h3><i class="fas fa-chart-bar"></i> Prediction Result</h3>
+                        <span class="result-time" id="resultTime"></span>
+                    </div>
+
+                    <div class="result-body">
+                        <!-- Fraud Status -->
+                        <div class="fraud-status" id="fraudStatus">
+                            <div class="status-icon" id="statusIcon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="status-info">
+                                <div class="status-label" id="statusLabel">Transaction Status</div>
+                                <div class="status-value" id="statusValue">Safe</div>
+                            </div>
+                            <div class="status-score" id="statusScore">
+                                <span class="score-label">Fraud Score</span>
+                                <span class="score-value" id="fraudScore">0%</span>
+                            </div>
+                        </div>
+
+                        <!-- Detailed Results -->
+                        <div class="result-details">
+                            <div class="detail-grid">
+                                <div class="detail-item">
+                                    <span class="detail-label">Transaction ID</span>
+                                    <span class="detail-value" id="txId">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Customer ID</span>
+                                    <span class="detail-value" id="resultCustomerId">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Amount</span>
+                                    <span class="detail-value" id="resultAmount">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Type</span>
+                                    <span class="detail-value" id="resultType">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Model Predictions -->
+                        <div class="model-predictions">
+                            <h4><i class="fas fa-robot"></i> Model Predictions</h4>
+                            <div class="model-grid" id="modelGrid">
+                                <!-- Dynamically populated -->
+                            </div>
+                        </div>
+
+                        <!-- Risk Factors -->
+                        <div class="risk-factors" id="riskFactors">
+                            <h4><i class="fas fa-exclamation-triangle"></i> Risk Factors</h4>
+                            <ul id="riskFactorsList">
+                                <!-- Dynamically populated -->
+                            </ul>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="result-actions">
+                            <button class="btn-success" onclick="approveTransaction()">
+                                <i class="fas fa-check"></i> Approve
+                            </button>
+                            <button class="btn-danger" onclick="flagTransaction()">
+                                <i class="fas fa-flag"></i> Flag for Review
+                            </button>
+                            <button class="btn-secondary" onclick="newTransaction()">
+                                <i class="fas fa-plus"></i> New Transaction
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="transaction-result">
+
+            {% if success %}
+            {% include "transaction/success.html" %}
+            {% endif %}
+
+        </div>
+
+    </main>
+</div>
+
+{% include 'components/chatbot.html' %}
+
+<script src="{% static 'js/chatbot.js' %}"></script>
+<script src="{% static 'transaction/transaction.js' %}"></script>
+
+</body>
+</html>

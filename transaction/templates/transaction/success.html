@@ -1,0 +1,21 @@
+<div class="success-overlay">
+    <div class="success-card"> <!-- Close -->
+        <button class="success-close">&times;</button> <!-- Success Icon -->
+        <div class="success-icon"> ✓</div>
+        <h2>Transaction Successful</h2>
+        <p class="success-message"> Your transaction has been successfully verified. </p> <!-- Transaction Details -->
+        <div class="transaction-details">
+            <div class="detail"><span>Transaction ID</span> <strong>{{ transaction_id }}</strong></div>
+            <div class="detail"><span>Customer Name</span> <strong>{{ customer_name }}</strong></div>
+            <div class="detail"><span>Amount</span> <strong>₹{{ amount }}</strong></div>
+            <div class="detail"><span>Transaction Type</span> <strong>{{ transaction_type }}</strong></div>
+            <div class="detail"><span>Merchant Category</span> <strong>{{ merchant_category }}</strong></div>
+            <div class="detail"><span>Location</span> <strong>{{ location }}</strong></div>
+            <div class="detail"><span>Date & Time</span> <strong>{{ timestamp }}</strong></div>
+            <div class="detail"><span>Fraud Probability</span> <strong class="safe"> {{ fraud_probability }}% </strong>
+            </div>
+            <div class="detail"><span>Status</span> <strong class="status"> NOT FRAUD </strong></div>
+        </div> <!-- Button -->
+        <button class="success-done" onclick="closeSuccess()"> Done</button>
+    </div>
+</div>
