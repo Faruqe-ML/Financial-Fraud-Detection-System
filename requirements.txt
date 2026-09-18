@@ -17,6 +17,8 @@ python-dotenv==1.1.1
 langchain-openai==1.1.0
 langchain==1.2.0
 langchain-core>=1.2.1,<2.0.0
+langgraph==1.2.0
+langgraph-prebuilt==1.1.0
 
 # OpenAI
 openai==2.8.1
