@@ -1,3 +1,6 @@
+import os
+from urllib.parse import quote_plus
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -9,8 +12,14 @@ from langchain.agents import create_agent
 from .prompts import system_prompt
 from langchain_community.utilities import SQLDatabase
 
+db_user = quote_plus(os.getenv("DB_USER", "root"))
+db_password = quote_plus(os.getenv("DB_PASSWORD", ""))
+db_host = os.getenv("DB_HOST", "127.0.0.1")
+db_port = os.getenv("DB_PORT", "3306")
+db_name = os.getenv("DB_NAME", "financialfraud")
+
 db = SQLDatabase.from_uri(
-    "mysql+pymysql://root:12345678@localhost:3306/financial_fraud_db"
+    f"mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 )
 
 model = ChatGroq(
@@ -22,14 +31,7 @@ toolkit = SQLDatabaseToolkit(
     llm=model
 )
 
-toolkit = SQLDatabaseToolkit(
-    db=db,
-    llm=model
-)
-
 tools = toolkit.get_tools()
-
-
 
 memory = InMemorySaver()
 

@@ -28,7 +28,12 @@ SECRET_KEY = 'django-insecure-b8iorbj*p0fh#ir28(5whkj!$ds6a0hw!m9fzm*3-x$!7#6py=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.1.235', 'localhost', '127.0.0.1','103.80.161.158']
+ALLOWED_HOSTS = ['192.168.1.235', 'localhost', '127.0.0.1', '103.80.161.158']
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://192.168.1.235:8000',
+    'http://103.80.161.158:8000',
+]
 
 
 # Application definition
@@ -56,6 +61,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -138,10 +144,16 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+STORAGES = {
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
+    },
+}
 
 
 
