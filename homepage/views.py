@@ -391,11 +391,20 @@ def login_view(request):
             email = request.POST.get("email", "").strip()
             password = request.POST.get("password", "")
 
-            user = authenticate(
-                request,
-                username=email,
-                password=password
-            )
+            print(password)
+            user_obj = User.objects.filter(email=email).first()
+
+            if user_obj:
+                print("USERNAME:", user_obj.username)
+                print("PASSWORD VALID:", user_obj.check_password(password))
+
+                user = authenticate(
+                    request,
+                    username=user_obj.username,
+                    password=password
+                )
+            else:
+                user = None
 
             if user is not None:
 
