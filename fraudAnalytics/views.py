@@ -214,7 +214,7 @@ def fraudpattern(request, full_name):
 
     return render(
         request,
-        "fraudAnalytics/fraudpattern.html",
+        "fraudAnalytics/fraudPattern.html",
         {
             "full_name":
                 full_name,

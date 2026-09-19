@@ -15,7 +15,7 @@
     <!-- Plotly -->
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 
-    <link rel="stylesheet" href="{% static 'fraudAnalytics/css/fraudpattern.css' %}">
+    <link rel="stylesheet" href="{% static 'fraudAnalytics/css/fraudPattern.css' %}">
     <link rel="stylesheet" href="{% static 'css/components.css' %}">
     <link rel="stylesheet" href="{% static 'css/chatbot.css' %}">
 </head>
@@ -195,7 +195,6 @@
 {% include 'components/chatbot.html' %}
 
 <script src="{% static 'js/chatbot.js' %}"></script>
-<script src="{% static 'js/fraud_pattern.js' %}"></script>
 {{ pattern_distribution_data|json_script:"pattern-distribution-data" }}
 {{ pattern_trend_data|json_script:"pattern-trend-data" }}
 {{ severity_data|json_script:"severity-data" }}
