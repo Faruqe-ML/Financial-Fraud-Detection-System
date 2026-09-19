@@ -12,7 +12,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="{% static 'homepage/css/homepage.css' %}">
+    <link rel="stylesheet" href="{% static 'homepage/css/success_registration.css' %}">
     <link rel="stylesheet" href="{% static 'css/animations.css' %}">
+
 
 
 </head>
@@ -327,7 +329,12 @@
         </div>
     </div>
 
-    <script src="{% static 'javascript/homepage.js' %}"></script>
+    {% if success_registration %}
+    {% include "components/success_registration.html" %}
+{% endif %}
+
+    <script src="{% static 'homepage/javascript/homepage.js' %}"></script>
+    <script src="{% static 'homepage/javascript/success_registration.js' %}"></script>
     <script>
     document.addEventListener("DOMContentLoaded", function () {
 

@@ -1,0 +1,97 @@
+{% load static %}
+    <!-- Background Homepage (Blurred) -->
+    <div class="homepage-background">
+        <!-- Header -->
+        <header class="bg-header">
+            <div class="bg-logo">
+                <i class="fas fa-shield-halved"></i>
+                <span>Fraud<span>Detect</span></span>
+            </div>
+        </header>
+
+        <!-- Hero -->
+        <div class="bg-hero">
+            <h1>AI-Powered Financial Fraud Detection</h1>
+            <p>Protect your transactions with advanced machine learning algorithms</p>
+        </div>
+    </div>
+
+    <!-- Success Overlay -->
+    <div class="success-overlay" id="successOverlay">
+        <div class="success-card">
+
+            <!-- Success Icon -->
+            <div class="success-icon-wrapper">
+                <div class="success-icon-bg"></div>
+                <div class="success-icon">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="success-ripple"></div>
+                <div class="success-ripple delay-1"></div>
+                <div class="success-ripple delay-2"></div>
+            </div>
+
+            <!-- Success Content -->
+            <div class="success-content">
+                <h1>Registration Successful!</h1>
+                <p>Welcome to <strong>FraudDetect</strong>, {{ registration.full_name }}! 🎉</p>
+
+                <div class="success-info-box">
+                    <div class="info-item">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <span class="info-label">Email Verified</span>
+                            <span class="info-value">{{ registration.email }}</span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-user-tag"></i>
+                        <div>
+                            <span class="info-label">Account Type</span>
+                            <span class="info-value">Registration</span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-calendar-check"></i>
+                        <div>
+                            <span class="info-label">Registered On</span>
+                            <span class="info-value" id="regDate">Just Now</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- What's Next -->
+                <div class="next-steps">
+                    <h3><i class="fas fa-rocket"></i> What's Next?</h3>
+                    <ul>
+                        <li><i class="fas fa-check-circle"></i> Explore your dashboard</li>
+                        <li><i class="fas fa-check-circle"></i> Set up your profile</li>
+                        <li><i class="fas fa-check-circle"></i> Start monitoring transactions</li>
+                    </ul>
+                </div>
+
+                <!-- Buttons -->
+                <div class="success-actions">
+                    <a href="{% url 'homepage:login' %}" class="btn-primary">
+                        <i class="fas fa-sign-in-alt"></i> Continue to Login
+                    </a>
+                    <a href="{% url 'homepage:homepage' %}" class="btn-secondary">
+                        <i class="fas fa-home"></i> Back to Home
+                    </a>
+                </div>
+
+                <!-- Auto-redirect -->
+                <div class="auto-redirect">
+                    <p>Redirecting to login in <span id="countdown">5</span> seconds...</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Confetti Container -->
+            <div class="confetti-container" id="confetti"></div>
+        </div>
+    </div>
+
+    <script src="{% static 'homepage/javascript/success_registration.js' %}"></script>
