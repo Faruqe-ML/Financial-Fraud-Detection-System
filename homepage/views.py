@@ -358,7 +358,8 @@ def verify_otp(request):
         request,
         "homepage/homepage.html",
         {
-            "choose": True,
+
+            "success_registration": True,
             "registration": registration
         }
     )

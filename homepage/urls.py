@@ -16,17 +16,10 @@ urlpatterns = [
 
     path('verify_otp/',views.verify_otp,name='verify_otp'),
 
-    path(
-        'verify_otp2/',
-        views.verify_otp2,
-        name='verify_otp2'
-    ),
+    path('verify_otp2/',views.verify_otp2,name='verify_otp2'),
 
     path('login/', views.login, name='login'),
 
-    path(
-        'login_view/',
-        views.login_view,
-        name='login_view'
-    ),
+    path('login_view/',views.login_view,name='login_view'),
+
 ]
