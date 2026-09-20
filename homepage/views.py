@@ -529,6 +529,14 @@ def verify_otp2(request):
                 request.session["email"] = customer.email
                 request.session["full_name"] = customer.full_name
 
+                # Remove OTP information
+                request.session.pop("otp", None)
+                request.session.pop("identifier", None)
+                request.session.pop("otp_show", None)
+                request.session.pop("message", None)
+
+                request.session.modified = True
+
 
 
                 return redirect("dashboard:dashboard")
