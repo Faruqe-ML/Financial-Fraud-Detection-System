@@ -1,4 +1,18 @@
-/* ===== RESET & BASE ===== */
+html {
+    scroll-behavior: smooth;
+    overflow-y: auto;   /* Forces vertical scrolling */
+    overflow-x: hidden; /* Keeps horizontal hidden */
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--dark);
+    color: var(--text-primary);
+    line-height: 1.6;
+    overflow-x: hidden;
+    overflow-y: auto;   /* <--- ADD THIS LINE */
+    min-height: 100vh;  /* Ensures body takes full viewport height */
+}
 * {
     margin: 0;
     padding: 0;
@@ -41,13 +55,16 @@ body {
 ::-webkit-scrollbar {
     width: 8px;
 }
+
 ::-webkit-scrollbar-track {
     background: var(--dark-2);
 }
+
 ::-webkit-scrollbar-thumb {
     background: var(--primary);
     border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
     background: var(--primary-dark);
 }
@@ -967,7 +984,11 @@ body {
     align-items: center !important;
     justify-content: center !important;
     z-index: 99999 !important;
-    overflow: hidden !important;
+
+    /* CHANGED: allow vertical scrolling */
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+
     padding: 20px !important;
     box-sizing: border-box !important;
 }
@@ -989,7 +1010,11 @@ body {
     border-radius: var(--border-radius) !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(108, 60, 225, 0.15) !important;
-    overflow: hidden !important;
+
+    /* CHANGED: allow vertical scrolling */
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+
     animation: slide-up 0.3s ease;
 }
 
@@ -1060,7 +1085,10 @@ body {
     width: 100% !important;
     padding: 0 !important;
     background: var(--dark) !important;
-    overflow: hidden !important;
+
+    /* CHANGED */
+    overflow: visible !important;
+
     box-sizing: border-box !important;
 }
 
@@ -1082,7 +1110,9 @@ body {
     gap: 30px !important;
     background: var(--dark) !important;
     box-sizing: border-box !important;
-    overflow: hidden !important;
+
+    /* CHANGED */
+    overflow: visible !important;
 }
 
 /* =========================================

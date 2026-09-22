@@ -7,7 +7,7 @@ from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
-
+from django.contrib.auth.hashers import check_password
 from utility import generate_otp, send_otp_email, send_otp
 from homepage.models import Registration
 
@@ -392,36 +392,54 @@ def login_view(request):
             password = request.POST.get("password", "")
 
             print(password)
-            user_obj = User.objects.filter(email=email).first()
+            print(email)
 
-            if user_obj:
-                print("USERNAME:", user_obj.username)
-                print("PASSWORD VALID:", user_obj.check_password(password))
+            user_obj = Registration.objects.filter(
+                email__iexact=email
+            ).first()
 
-                user = authenticate(
-                    request,
-                    username=user_obj.username,
-                    password=password
+
+
+            if user_obj and user_obj.email.lower() == email.lower():
+
+                password_valid = check_password(
+                    password,
+                    user_obj.password
                 )
-            else:
-                user = None
 
-            if user is not None:
+                if password_valid:
+                    # Login successful
+                    request.session["email"] = user_obj.email
+                    request.session["full_name"] = user_obj.full_name
+                    request.session["registration_id"] = user_obj.id
 
-                auth_login(request, user)
+                    return redirect("dashboard:dashboard")
 
-                # Get registration/customer
-                registration = Registration.objects.filter(
-                    email=email
-                ).first()
 
-                if registration:
-                    request.session["email"] = registration.email
-                    request.session["full_name"] = registration.full_name
+                # user = authenticate(
+                #     request,
+                #     username=user_obj.email,
+                #     password=password
+                # )
+            # else:
+            #     user = None
+            #
+            # if user is not None:
+            #
+            #     auth_login(request, user)
+            #
+            #     # Get registration/customer
+            #     registration = Registration.objects.filter(
+            #         email=email
+            #     ).first()
+            #
+            #     if registration:
+            #         request.session["email"] = registration.email
+            #         request.session["full_name"] = registration.full_name
+            #
+            #         print("FULL NAME:", registration.full_name)
 
-                    print("FULL NAME:", registration.full_name)
 
-                return redirect("dashboard:dashboard")
 
             else:
 
