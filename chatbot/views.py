@@ -3,7 +3,6 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
-from .langchain_bot import ask_chatbot
 
 
 @require_POST
@@ -38,6 +37,8 @@ def chatbot_api(request):
 
         print("\nCalling LangChain...")
 
+
+        from .langchain_bot import ask_chatbot
 
         answer = ask_chatbot(
             prompt=prompt,
