@@ -1,31 +1,58 @@
+
 import os
-from urllib.parse import quote_plus
 
 from dotenv import load_dotenv
-
-load_dotenv()
+from sqlalchemy.engine import URL
 
 from langchain_groq import ChatGroq
 from langchain_community.agent_toolkits import SQLDatabaseToolkit
+from langchain_community.utilities import SQLDatabase
 from langgraph.checkpoint.memory import InMemorySaver
 from langchain.agents import create_agent
+
 from .prompts import system_prompt
-from langchain_community.utilities import SQLDatabase
 
-db_user = quote_plus(os.getenv("DB_USER", "root"))
-db_password = quote_plus(os.getenv("DB_PASSWORD", ""))
-db_host = os.getenv("DB_HOST", "127.0.0.1")
-db_port = os.getenv("DB_PORT", "3306")
-db_name = os.getenv("DB_NAME", "financialfraud")
+load_dotenv()
 
-db = SQLDatabase.from_uri(
-    f"mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
-)
+# Database configuration
+db_user = os.getenv("DB_USER", "fraud_app")
+db_password = os.environ["DB_PASSWORD"]
+db_name = os.getenv("DB_NAME", "financial_fraud_db")
 
+if os.getenv("CLOUD_RUN", "false").lower() == "true":
+    # Cloud Run + Cloud SQL
+    connection_name = os.environ["INSTANCE_CONNECTION_NAME"]
+
+    db_uri = URL.create(
+        drivername="mysql+pymysql",
+        username=db_user,
+        password=db_password,
+        host="localhost",
+        database=db_name,
+        query={
+            "unix_socket": f"/cloudsql/{connection_name}"
+        },
+    )
+else:
+    # Local development
+    db_uri = URL.create(
+        drivername="mysql+pymysql",
+        username=db_user,
+        password=db_password,
+        host=os.getenv("DB_HOST", "127.0.0.1"),
+        port=int(os.getenv("DB_PORT", "3306")),
+        database=db_name,
+    )
+
+# Create database connection
+db = SQLDatabase.from_uri(db_uri)
+
+# LLM configuration
 model = ChatGroq(
     model="openai/gpt-oss-20b"
 )
 
+# SQL tools
 toolkit = SQLDatabaseToolkit(
     db=db,
     llm=model
@@ -33,8 +60,10 @@ toolkit = SQLDatabaseToolkit(
 
 tools = toolkit.get_tools()
 
+# Conversation memory
 memory = InMemorySaver()
 
+# Create agent
 agent = create_agent(
     model=model,
     tools=tools,
@@ -42,8 +71,8 @@ agent = create_agent(
     system_prompt=system_prompt
 )
 
-def ask_chatbot(prompt, thread_id="1"):
 
+def ask_chatbot(prompt, thread_id="1"):
     response = agent.invoke(
         {
             "messages": [
@@ -60,6 +89,4 @@ def ask_chatbot(prompt, thread_id="1"):
         }
     )
 
-    result = response["messages"][-1].content
-
-    return result
+    return response["messages"][-1].content
