@@ -49,7 +49,8 @@ db = SQLDatabase.from_uri(db_uri)
 
 # LLM configuration
 model = ChatGroq(
-    model="openai/gpt-oss-20b"
+    model="openai/gpt-oss-20b",
+    api_key=os.environ["GROQ_API_KEY"]
 )
 
 # SQL tools
