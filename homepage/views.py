@@ -1,4 +1,6 @@
 from datetime import datetime
+from typing import TypedDict
+
 from django.contrib.auth import authenticate, login as auth_login
 from django.contrib import messages
 from django.contrib.auth import authenticate
@@ -10,6 +12,16 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.hashers import check_password
 from utility import generate_otp, send_otp_email, send_otp
 from homepage.models import Registration
+
+
+class RAGState(TypedDict):
+    question: str
+    topic: str            # ← chosen by router
+    context: str
+    sources: list[str]
+    answer: str
+    summary: str
+    key_points: list[str]
 
 
 def homepage(request):
