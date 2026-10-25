@@ -20,5 +20,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+RUN SECRET_KEY=build-only-temporary-key python manage.py collectstatic --noinput
+
 # Cloud Run uses PORT=8080 by default
 CMD exec gunicorn config.wsgi:application --bind 0.0.0.0:${PORT} --workers 1 --threads 4 --timeout 300
