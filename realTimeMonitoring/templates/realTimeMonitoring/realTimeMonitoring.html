@@ -189,7 +189,7 @@
     {% include 'components/chatbot.html' %}
 
     <script src="{% static 'js/chatbot.js' %}"></script>
-    <script src="{% static 'js/real_time_monitoring.js' %}"></script>
+
     {{ live_transactions|json_script:"live-transactions-data" }}
     {{ detection_transactions|json_script:"detection-transactions-data" }}
 

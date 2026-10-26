@@ -142,7 +142,7 @@
     {% include 'components/chatbot.html' %}
 
 <script src="{% static 'js/chatbot.js' %}"></script>
-    <script src="{% static 'js/transaction_analysis.js' %}"></script>
+
     {{ donut_chart_data|json_script:"donut-chart-data" }}
     {{ top_fraud_locations|json_script:"location-chart-data" }}
     {{ cumulative_growth_data|json_script:"area-chart-data" }}

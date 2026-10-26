@@ -161,7 +161,7 @@
     {% include 'components/chatbot.html' %}
 
 <script src="{% static 'js/chatbot.js' %}"></script>
-    <script src="{% static 'js/destination_risk.js' %}"></script>
+
     {{ risk_distribution_data|json_script:"risk-distribution-data" }}
     {{ country_risk_data|json_script:"country-risk-data" }}
     {{ fraud_amount_data|json_script:"fraud-amount-data" }}

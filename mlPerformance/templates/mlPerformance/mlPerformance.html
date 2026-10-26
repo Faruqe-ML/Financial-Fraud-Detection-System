@@ -238,7 +238,7 @@
 {% include 'components/chatbot.html' %}
 
 <script src="{% static 'js/chatbot.js' %}"></script>
-<script src="{% static 'js/ml_performance.js' %}"></script>
+
 {{ performance_data|json_script:"performance-data" }}
 {{ confusion_matrix_data|json_script:"confusion-matrix-data" }}
 {{ roc_data|json_script:"roc-data" }}
